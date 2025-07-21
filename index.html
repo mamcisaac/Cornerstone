@@ -419,7 +419,10 @@
             "COPY": "To reproduce or duplicate",
             "CORD": "A thin rope or string",
             "CORE": "The central or most important part",
+            "CORES": "Central parts or essential elements",
             "CORN": "A cereal grain grown as food",
+            "CORNS": "Multiple cereal grains or foot growths",
+            "CORNERSTONES": "Fundamental principles or essential elements",
             "COST": "The price paid for something",
             "COTS": "Small beds or shelters",
             "COUP": "A sudden overthrow of government",
@@ -1005,6 +1008,7 @@
             "SONG": "Music with words",
             "SOON": "In a short time",
             "SORE": "Painful or tender",
+            "SORES": "Painful or tender areas",
             "SORT": "To arrange by type",
             "SOUL": "The spiritual part of person",
             "SOUP": "Liquid food",
@@ -1172,8 +1176,9 @@
         const CROSS_POSITIONS = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14];
         
         // Hamiltonian paths through the cross that spell CORNERSTONES correctly
+        // Based on the actual grid layout: C-O at top, N-E-R-T in second row, etc.
         const HAMILTONIAN_PATHS = [
-            // Path 0: C-O-R-N-E-R-S-T-O-N-E-S (matches your grid layout)
+            // Path 0: C-O-R-N-E-R-S-T-O-N-E-S (matching your grid exactly)
             [1, 2, 6, 4, 5, 9, 8, 7, 13, 10, 11, 14],
             // Path 1: Alternative arrangement  
             [4, 5, 1, 2, 6, 7, 8, 9, 10, 11, 13, 14],
@@ -1287,6 +1292,7 @@
                 });
                 
                 console.log(`Found ${this.allPossibleWords.size} possible words for ${this.currentPuzzle}`);
+                console.log('Sample found words:', Array.from(this.allPossibleWords).slice(0, 20));
             }
 
             dfsWordSearch(position, currentWord, path, visited) {

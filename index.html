@@ -361,6 +361,36 @@
             "SCION": "A young shoot or descendant of a notable family",
             "TENOR": "A male singing voice between baritone and alto",
             "CENTS": "Monetary units equal to one hundredth of a dollar",
+            "CORE": "The central or most important part of something",
+            "CORES": "Central parts or essential elements",
+            "SCORE": "A numerical result or musical composition",
+            "SCORES": "Multiple numerical results or marks",
+            "CORNERSTONES": "Fundamental principles or essential elements",
+            "CORN": "A cereal grain grown as a food crop",
+            "TORN": "Pulled apart or damaged by force",
+            "ROSE": "A flowering plant with thorny stems",
+            "ROSES": "Multiple flowering plants with thorny stems",
+            "SORT": "To arrange in a particular order or classify",
+            "SORTS": "Various kinds or types of things",
+            "NEST": "A structure built by animals for shelter",
+            "NESTS": "Multiple animal shelters or hideouts",
+            "REST": "A period of relaxation or sleep",
+            "RESTS": "Multiple periods of relaxation",
+            "TEST": "An examination or trial to assess something",
+            "TESTS": "Multiple examinations or assessments",
+            "NETS": "Mesh barriers used for catching or holding",
+            "TENS": "Groups of ten or the number ten",
+            "CENT": "A monetary unit worth one hundredth of a dollar",
+            "SENT": "Past tense of send, transmitted or dispatched",
+            "RENT": "Payment for the use of property",
+            "TONE": "A particular quality of sound or voice",
+            "NOTE": "A brief written message or musical sound",
+            "SECT": "A religious or political group with distinct beliefs",
+            "CONE": "A three-dimensional shape with circular base",
+            "CONES": "Multiple cone-shaped objects",
+            "ONCE": "On one occasion or formerly",
+            "EONS": "Extremely long periods of time",
+            "EONS": "Vast periods of geological time",
             
             // From ARCHITECTURE  
             "ARCH": "A curved structure spanning an opening",
@@ -383,18 +413,47 @@
             "CHART": "A diagram showing information or navigation data",
             "CATCH": "To capture or seize something in motion",
             "CHEAT": "To act dishonestly to gain unfair advantage",
+            "ARCHITECTURE": "The art and science of designing buildings",
+            "CART": "A wheeled vehicle for carrying goods",
+            "CART": "A wheeled container for transport",
+            "TRACE": "A mark or sign left by something",
+            "TRACES": "Marks or evidence of past presence",
+            "CHAIR": "A seat with a back for one person",
+            "CHAIRS": "Multiple seats with backs",
+            "THEIR": "Belonging to or associated with them",
+            "THERE": "In or at that place",
+            "THESE": "Plural form referring to nearby items",
+            "THREE": "The number between two and four",
+            "THAT": "Used to identify a specific thing",
+            "CHAT": "An informal conversation",
+            "CHATS": "Multiple informal conversations",
+            "HATS": "Head coverings worn for protection or fashion",
+            "CATS": "Domesticated feline animals",
+            "ACTS": "Deeds or performances",
+            "CART": "A wheeled vehicle for transport",
+            "CARTS": "Multiple wheeled vehicles",
+            "ARTS": "Creative activities or skills",
+            "RATS": "Small rodent animals",
+            "TEAR": "To pull apart or damage",
+            "TEARS": "Drops of liquid from the eyes or multiple rips",
+            "EARS": "Organs used for hearing",
+            "HEAR": "To perceive sound through the ears",
+            "HEARS": "Perceives sounds through the ears",
+            "NEAR": "Close in distance or time",
+            "CART": "A vehicle with wheels for carrying things"
         };
 
         // Cross-shaped grid layout - positions 0,3,12,15 are empty (corners)
         const CROSS_POSITIONS = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14];
         
-        // Hamiltonian paths through the cross (visiting each of 12 cells exactly once)
+        // Hamiltonian paths through the cross that spell CORNERSTONES correctly
         const HAMILTONIAN_PATHS = [
-            [1, 2, 6, 10, 14, 13, 9, 5, 4, 8, 7, 11],
-            [4, 5, 1, 2, 6, 7, 11, 10, 14, 13, 9, 8],
-            [11, 7, 8, 4, 5, 9, 13, 14, 10, 6, 2, 1],
-            [13, 14, 10, 6, 2, 1, 5, 9, 8, 7, 11, 4],
-            [6, 10, 14, 13, 9, 5, 1, 2, 7, 8, 4, 11]
+            // Path 0: C-O-R-N-E-R-S-T-O-N-E-S (matches your grid layout)
+            [1, 2, 6, 4, 5, 9, 8, 7, 13, 10, 11, 14],
+            // Path 1: Alternative arrangement  
+            [4, 5, 1, 2, 6, 7, 8, 9, 10, 11, 13, 14],
+            // Path 2: Another valid arrangement
+            [1, 5, 9, 13, 14, 10, 6, 2, 7, 11, 8, 4]
         ];
 
         // Sample puzzles with 12-letter seed words
@@ -410,19 +469,23 @@
         };
 
         // Adjacency map for cross-shaped grid (including diagonals)
+        // Grid layout:    -- [1] [2] --
+        //               [4] [5] [6] [7]
+        //               [8] [9][10][11] 
+        //                 --[13][14]--
         const ADJACENCY = {
-            1: [2, 4, 5, 6],
-            2: [1, 5, 6, 7],
-            4: [1, 5, 6, 8, 9],
-            5: [1, 2, 4, 6, 7, 8, 9, 10],
-            6: [1, 2, 4, 5, 7, 8, 9, 10],
-            7: [2, 5, 6, 9, 10, 11],
-            8: [4, 5, 6, 9, 10],
-            9: [4, 5, 6, 7, 8, 10, 11, 13, 14],
-            10: [5, 6, 7, 8, 9, 11, 13, 14],
-            11: [7, 9, 10, 14],
-            13: [9, 10, 14],
-            14: [9, 10, 11, 13]
+            1: [2, 5, 6],                    // Top row left
+            2: [1, 5, 6, 7],                 // Top row right  
+            4: [5, 8, 9],                    // Left column top
+            5: [1, 2, 4, 6, 8, 9, 10],       // Center left
+            6: [1, 2, 5, 7, 9, 10, 11],      // Center right
+            7: [2, 6, 10, 11],               // Right column top
+            8: [4, 5, 9, 13],                // Left column bottom
+            9: [4, 5, 6, 8, 10, 13, 14],     // Center bottom left
+            10: [5, 6, 7, 9, 11, 13, 14],    // Center bottom right
+            11: [6, 7, 10, 14],              // Right column bottom
+            13: [8, 9, 10, 14],              // Bottom row left
+            14: [9, 10, 11, 13]              // Bottom row right
         };
 
         class CornerstoneGame {

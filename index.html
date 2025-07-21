@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cornerstone - Daily Word Puzzle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            max-width: 320px;
+            margin: 0 auto 30px auto;
+            padding: 20px;
+        }
+
+        .cell {
+            width: 70px;
+            height: 70px;
+            border: 3px solid #ddd;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            background: white;
+        }
+
+        .cell:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .cell.empty {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .cell.selected {
+            background: #667eea;
+            color: white;
+            border-color: #5a67d8;
+            transform: scale(1.1);
+        }
+
+        .cell.in-path {
+            background: #e6f3ff;
+            border-color: #667eea;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .current-word {
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .word-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            letter-spacing: 2px;
+        }
+
+        .message {
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message.success {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .message.error {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .found-words {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .found-words h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .found-word {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .found-word:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .definition-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+        }
+
+        .definition-popup.show {
+            display: block;
+        }
+
+        .popup-word {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .popup-definition {
+            color: #333;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .close-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            float: right;
+        }
+
+        .close-btn:hover {
+            background: #5a67d8;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .new-game-btn {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .new-game-btn:hover {
+            background: #16a34a;
+        }
+
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 20px;
+            }
+            
+            .cell {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5em;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">Cornerstone</h1>
+            <p class="subtitle">Find words in the cross-shaped grid (4+ letters)</p>
+        </div>
+
+        <div class="game-grid" id="gameGrid">
+            <!-- Grid cells will be generated by JavaScript -->
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="wordsFound">0</div>
+                <div class="stat-label">Words Found</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="totalWords">0</div>
+                <div class="stat-label">Total Possible</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="score">0</div>
+                <div class="stat-label">Score</div>
+            </div>
+        </div>
+
+        <div class="current-word">
+            <div class="word-display" id="currentWord">Select letters to form words</div>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="found-words">
+            <h3>Found Words:</h3>
+            <div class="word-list" id="wordList"></div>
+        </div>
+
+        <div class="controls">
+            <button class="new-game-btn" onclick="game.newGame()">New Game</button>
+            <button class="new-game-btn" onclick="game.switchPuzzle()">Switch Puzzle</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="definition-popup" id="definitionPopup">
+        <div class="popup-word" id="popupWord"></div>
+        <div class="popup-definition" id="popupDefinition"></div>
+        <button class="close-btn" onclick="game.closeDefinition()">Close</button>
+    </div>
+
+    <script>
+        // Word definitions - proper definitions without using the root word
+        const WORD_DEFINITIONS = {
+            // From CORNERSTONES
+            "CORNER": "The place where two lines meet at an angle",
+            "CORNERS": "Angular meeting points where surfaces intersect", 
+            "STONE": "Hard solid mineral matter formed naturally",
+            "STONES": "Hard solid pieces of rock or mineral",
+            "STORE": "A retail establishment selling goods to the public",
+            "STORES": "Multiple retail establishments or places of storage",
+            "NOTES": "Brief written records or musical sounds of definite pitch",
+            "TONES": "Sounds of definite pitch and character",
+            "STERN": "Serious and uncompromising in manner or approach",
+            "RESET": "To restore to original settings or starting condition",
+            "SNORE": "A loud breathing sound made during sleep",
+            "ONSET": "The beginning or start of something",
+            "CREST": "The highest point of a hill or wave",
+            "CRONE": "An old woman, especially one considered wise",
+            "SCONE": "A type of quick bread often served with tea",
+            "NORSE": "Relating to ancient Scandinavian peoples",
+            "RENTS": "Payments made for the use of property",
+            "SCION": "A young shoot or descendant of a notable family",
+            "TENOR": "A male singing voice between baritone and alto",
+            "CENTS": "Monetary units equal to one hundredth of a dollar",
+            
+            // From ARCHITECTURE  
+            "ARCH": "A curved structure spanning an opening",
+            "CHART": "A sheet displaying information in organized form",
+            "TEACH": "To impart knowledge or skills to someone", 
+            "REACH": "To stretch out to touch or grasp something",
+            "CREATURE": "A living being, especially an animal",
+            "TEACHER": "An educator who instructs students",
+            "ARCHITECT": "A professional who designs buildings and structures",
+            "RICH": "Having abundant wealth or resources",
+            "TECH": "Technology or technical equipment",
+            "EACH": "Every one of two or more considered individually",
+            "CARE": "Attention and consideration for someone or something",
+            "RACE": "A competition of speed or ethnicity classification",
+            "RATE": "A measure of frequency or speed of occurrence",
+            "HATE": "Intense dislike or hostility toward something",
+            "HEAT": "Energy that causes temperature increase",
+            "HEART": "The organ that pumps blood through the body",
+            "EARTH": "The planet we live on or soil and ground",
+            "CHART": "A diagram showing information or navigation data",
+            "CATCH": "To capture or seize something in motion",
+            "CHEAT": "To act dishonestly to gain unfair advantage",
+        };
+
+        // Cross-shaped grid layout - positions 0,3,12,15 are empty (corners)
+        const CROSS_POSITIONS = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14];
+        
+        // Hamiltonian paths through the cross (visiting each of 12 cells exactly once)
+        const HAMILTONIAN_PATHS = [
+            [1, 2, 6, 10, 14, 13, 9, 5, 4, 8, 7, 11],
+            [4, 5, 1, 2, 6, 7, 11, 10, 14, 13, 9, 8],
+            [11, 7, 8, 4, 5, 9, 13, 14, 10, 6, 2, 1],
+            [13, 14, 10, 6, 2, 1, 5, 9, 8, 7, 11, 4],
+            [6, 10, 14, 13, 9, 5, 1, 2, 7, 8, 4, 11]
+        ];
+
+        // Sample puzzles with 12-letter seed words
+        const SAMPLE_PUZZLES = {
+            "CORNERSTONES": {
+                seedWord: "CORNERSTONES",
+                pathIndex: 0
+            },
+            "ARCHITECTURE": {
+                seedWord: "ARCHITECTURE", 
+                pathIndex: 1
+            }
+        };
+
+        // Adjacency map for cross-shaped grid (including diagonals)
+        const ADJACENCY = {
+            1: [2, 4, 5, 6],
+            2: [1, 5, 6, 7],
+            4: [1, 5, 6, 8, 9],
+            5: [1, 2, 4, 6, 7, 8, 9, 10],
+            6: [1, 2, 4, 5, 7, 8, 9, 10],
+            7: [2, 5, 6, 9, 10, 11],
+            8: [4, 5, 6, 9, 10],
+            9: [4, 5, 6, 7, 8, 10, 11, 13, 14],
+            10: [5, 6, 7, 8, 9, 11, 13, 14],
+            11: [7, 9, 10, 14],
+            13: [9, 10, 14],
+            14: [9, 10, 11, 13]
+        };
+
+        class CornerstoneGame {
+            constructor() {
+                this.currentPuzzle = "CORNERSTONES";
+                this.grid = [];
+                this.selectedPath = [];
+                this.foundWords = new Set();
+                this.allPossibleWords = new Set();
+                this.isSelecting = false;
+                this.gameStarted = false;
+                
+                this.initializeGame();
+                this.setupEventListeners();
+            }
+
+            initializeGame() {
+                this.createGrid();
+                this.generatePuzzle();
+                this.findAllPossibleWords();
+                this.updateStats();
+                this.loadProgress();
+            }
+
+            createGrid() {
+                const gridElement = document.getElementById('gameGrid');
+                gridElement.innerHTML = '';
+                
+                for (let i = 0; i < 16; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.index = i;
+                    
+                    // Hide corner cells (0, 3, 12, 15)
+                    if ([0, 3, 12, 15].includes(i)) {
+                        cell.classList.add('empty');
+                    } else {
+                        cell.addEventListener('mousedown', (e) => this.startSelection(e));
+                        cell.addEventListener('mouseenter', (e) => this.continueSelection(e));
+                        cell.addEventListener('mouseup', (e) => this.endSelection(e));
+                    }
+                    
+                    gridElement.appendChild(cell);
+                }
+            }
+
+            generatePuzzle() {
+                const puzzle = SAMPLE_PUZZLES[this.currentPuzzle];
+                const path = HAMILTONIAN_PATHS[puzzle.pathIndex];
+                const letters = puzzle.seedWord.split('');
+                
+                this.grid = new Array(16).fill('');
+                
+                // Place letters along the Hamiltonian path
+                path.forEach((position, index) => {
+                    this.grid[position] = letters[index];
+                });
+                
+                // Update grid display
+                const cells = document.querySelectorAll('.cell:not(.empty)');
+                cells.forEach((cell) => {
+                    const index = parseInt(cell.dataset.index);
+                    cell.textContent = this.grid[index] || '';
+                });
+            }
+
+            findAllPossibleWords() {
+                this.allPossibleWords = new Set();
+                const visited = new Array(16).fill(false);
+                
+                // Start DFS from each playable cell
+                CROSS_POSITIONS.forEach(startPos => {
+                    this.dfsWordSearch(startPos, '', [startPos], visited.slice());
+                });
+                
+                console.log(`Found ${this.allPossibleWords.size} possible words for ${this.currentPuzzle}`);
+            }
+
+            dfsWordSearch(position, currentWord, path, visited) {
+                visited[position] = true;
+                const newWord = currentWord + this.grid[position];
+                
+                // Check if we have a valid 4+ letter word
+                if (newWord.length >= 4 && WORD_DEFINITIONS[newWord.toUpperCase()]) {
+                    this.allPossibleWords.add(newWord.toUpperCase());
+                }
+                
+                // Continue searching if word isn't too long
+                if (newWord.length < 12) {
+                    const neighbors = ADJACENCY[position] || [];
+                    neighbors.forEach(neighbor => {
+                        if (!visited[neighbor] && this.grid[neighbor]) {
+                            this.dfsWordSearch(neighbor, newWord, [...path, neighbor], visited.slice());
+                        }
+                    });
+                }
+            }
+
+            setupEventListeners() {
+                document.addEventListener('mouseup', () => this.endSelection());
+                document.getElementById('overlay').addEventListener('click', () => this.closeDefinition());
+                
+                // Prevent context menu on right-click
+                document.addEventListener('contextmenu', (e) => e.preventDefault());
+            }
+
+            startSelection(e) {
+                e.preventDefault();
+                this.isSelecting = true;
+                this.selectedPath = [];
+                const index = parseInt(e.target.dataset.index);
+                this.addToPath(index);
+            }
+
+            continueSelection(e) {
+                if (!this.isSelecting) return;
+                const index = parseInt(e.target.dataset.index);
+                this.addToPath(index);
+            }
+
+            endSelection(e) {
+                if (!this.isSelecting) return;
+                this.isSelecting = false;
+                
+                const word = this.getSelectedWord();
+                if (word.length >= 4) {
+                    this.checkWord(word);
+                }
+                
+                this.clearSelection();
+            }
+
+            addToPath(index) {
+                // Check if cell is already in path
+                if (this.selectedPath.includes(index)) return;
+                
+                // Check adjacency (except for first cell)
+                if (this.selectedPath.length > 0) {
+                    const lastIndex = this.selectedPath[this.selectedPath.length - 1];
+                    if (!this.isAdjacent(lastIndex, index)) return;
+                }
+                
+                this.selectedPath.push(index);
+                this.updateSelection();
+                this.updateCurrentWord();
+            }
+
+            isAdjacent(pos1, pos2) {
+                const neighbors = ADJACENCY[pos1] || [];
+                return neighbors.includes(pos2);
+            }
+
+            updateSelection() {
+                // Clear all selections
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('selected', 'in-path');
+                });
+                
+                // Highlight selected path
+                this.selectedPath.forEach((index, i) => {
+                    const cell = document.querySelector(`[data-index="${index}"]`);
+                    if (i === this.selectedPath.length - 1) {
+                        cell.classList.add('selected');
+                    } else {
+                        cell.classList.add('in-path');
+                    }
+                });
+            }
+
+            clearSelection() {
+                this.selectedPath = [];
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('selected', 'in-path');
+                });
+                document.getElementById('currentWord').textContent = 'Select letters to form words';
+            }
+
+            getSelectedWord() {
+                return this.selectedPath.map(index => this.grid[index]).join('').toUpperCase();
+            }
+
+            updateCurrentWord() {
+                const word = this.getSelectedWord();
+                document.getElementById('currentWord').textContent = word || 'Select letters to form words';
+            }
+
+            checkWord(word) {
+                const upperWord = word.toUpperCase();
+                
+                if (this.foundWords.has(upperWord)) {
+                    this.showMessage('Already found!', 'error');
+                    return;
+                }
+                
+                if (WORD_DEFINITIONS[upperWord] && this.allPossibleWords.has(upperWord)) {
+                    this.foundWords.add(upperWord);
+                    this.showMessage(`Great! "${upperWord}" found!`, 'success');
+                    this.showDefinition(upperWord);
+                    this.updateFoundWords();
+                    this.updateStats();
+                    this.saveProgress();
+                } else if (word.length < 4) {
+                    this.showMessage('Words must be 4+ letters', 'error');
+                } else {
+                    this.showMessage('Not a valid word', 'error');
+                }
+            }
+
+            showMessage(text, type) {
+                const messageEl = document.getElementById('message');
+                messageEl.textContent = text;
+                messageEl.className = `message ${type}`;
+                
+                setTimeout(() => {
+                    messageEl.textContent = '';
+                    messageEl.className = 'message';
+                }, 3000);
+            }
+
+            showDefinition(word) {
+                document.getElementById('popupWord').textContent = word;
+                document.getElementById('popupDefinition').textContent = WORD_DEFINITIONS[word];
+                document.getElementById('overlay').classList.add('show');
+                document.getElementById('definitionPopup').classList.add('show');
+            }
+
+            closeDefinition() {
+                document.getElementById('overlay').classList.remove('show');
+                document.getElementById('definitionPopup').classList.remove('show');
+            }
+
+            updateFoundWords() {
+                const wordListEl = document.getElementById('wordList');
+                wordListEl.innerHTML = '';
+                
+                const sortedWords = Array.from(this.foundWords).sort();
+                sortedWords.forEach(word => {
+                    const wordEl = document.createElement('span');
+                    wordEl.className = 'found-word';
+                    wordEl.textContent = word;
+                    wordEl.onclick = () => this.showDefinition(word);
+                    wordListEl.appendChild(wordEl);
+                });
+            }
+
+            updateStats() {
+                document.getElementById('wordsFound').textContent = this.foundWords.size;
+                document.getElementById('totalWords').textContent = this.allPossibleWords.size;
+                
+                let score = 0;
+                this.foundWords.forEach(word => {
+                    score += word.length; // Simple scoring: 1 point per letter
+                });
+                document.getElementById('score').textContent = score;
+            }
+
+            switchPuzzle() {
+                this.currentPuzzle = this.currentPuzzle === "CORNERSTONES" ? "ARCHITECTURE" : "CORNERSTONES";
+                this.foundWords.clear();
+                this.generatePuzzle();
+                this.findAllPossibleWords();
+                this.updateFoundWords();
+                this.updateStats();
+                this.clearSelection();
+                this.saveProgress();
+            }
+
+            newGame() {
+                this.foundWords.clear();
+                this.updateFoundWords();
+                this.updateStats();
+                this.clearSelection();
+                this.saveProgress();
+            }
+
+            saveProgress() {
+                const progress = {
+                    puzzle: this.currentPuzzle,
+                    foundWords: Array.from(this.foundWords),
+                    date: new Date().toDateString()
+                };
+                localStorage.setItem('cornerstoneProgress', JSON.stringify(progress));
+            }
+
+            loadProgress() {
+                const saved = localStorage.getItem('cornerstoneProgress');
+                if (saved) {
+                    const progress = JSON.parse(saved);
+                    if (progress.date === new Date().toDateString()) {
+                        this.currentPuzzle = progress.puzzle;
+                        this.foundWords = new Set(progress.foundWords);
+                        this.generatePuzzle();
+                        this.findAllPossibleWords();
+                        this.updateFoundWords();
+                        this.updateStats();
+                    }
+                }
+            }
+        }
+
+        // Initialize the game when page loads
+        let game;
+        document.addEventListener('DOMContentLoaded', () => {
+            game = new CornerstoneGame();
+        });
+    </script>
+</body>
+</html>

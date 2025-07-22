@@ -7,20 +7,31 @@ console.log('Loading comprehensive word dictionary...');
 // Create word set from filtered word list
 const loadWords = async () => {
     try {
+        console.log('Attempting to load word list from words_4plus.txt...');
         const response = await fetch('./words_4plus.txt');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const text = await response.text();
         const words = text.trim().split('\n').map(word => word.toUpperCase());
+        console.log(`Successfully loaded ${words.length} words`);
         return new Set(words);
     } catch (error) {
-        console.error('Failed to load word list:', error);
-        // Fallback to a smaller embedded list for critical words
-        return new Set([
+        console.error('Failed to load word list, using fallback:', error);
+        // Return a more comprehensive fallback for testing
+        const fallbackWords = new Set([
             'STONE', 'STONES', 'CORNERS', 'CORNERSTONES', 'NOTES', 'NOTE', 
             'STORE', 'STORES', 'CORES', 'CORE', 'CORNS', 'CORN', 'NETS',
             'NEST', 'REST', 'TERN', 'TENS', 'SENT', 'TONE', 'TONES',
             'SORE', 'SORES', 'ROSE', 'NOSE', 'ONES', 'COST', 'COSTS',
-            'COTS', 'SCOT', 'SECT', 'STERN', 'TERMS', 'TERM'
+            'COTS', 'SCOT', 'SECT', 'STERN', 'TERMS', 'TERM', 'NETS',
+            'NESTS', 'ROSES', 'NOSE', 'NOSES', 'ORES', 'ERNS', 'EROS',
+            'ONCE', 'CONE', 'CONES', 'SCENE', 'SCENES', 'CREST', 'CRESTS'
         ]);
+        console.log(`Using fallback word list with ${fallbackWords.size} words`);
+        return fallbackWords;
     }
 };
 
@@ -59,10 +70,13 @@ class ComprehensiveWordValidator {
 
     isValidWord(word) {
         if (!this.loaded || !this.wordSet) {
-            console.warn('Word validator not initialized');
+            console.warn('Word validator not initialized, attempting to validate:', word);
             return false;
         }
-        return this.wordSet.has(word.toUpperCase());
+        const upperWord = word.toUpperCase();
+        const isValid = this.wordSet.has(upperWord);
+        console.log(`Validating "${upperWord}": ${isValid ? 'VALID' : 'INVALID'}`);
+        return isValid;
     }
 
     getWordCount() {

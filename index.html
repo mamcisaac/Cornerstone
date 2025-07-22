@@ -1295,9 +1295,17 @@
                 this.wordDefinitions = new Map(); // Store definitions for found words
                 
                 // Ensure word validator is loaded
-                if (!window.wordValidator.loaded) {
-                    console.log('Initializing comprehensive word validator...');
-                    await window.wordValidator.initialize();
+                if (!window.wordValidator || !window.wordValidator.loaded) {
+                    console.log('Word validator not loaded, initializing...');
+                    if (!window.wordValidator) {
+                        console.error('Word validator object not found!');
+                        return;
+                    }
+                    const success = await window.wordValidator.initialize();
+                    if (!success) {
+                        console.error('Failed to initialize word validator');
+                        return;
+                    }
                 }
                 
                 const visited = new Array(16).fill(false);

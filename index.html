@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cornerstone - Daily Word Puzzle</title>
+    <!-- Load comprehensive word validation and definition systems -->
+    <script src="words.js"></script>
+    <script src="definitions.js"></script>
     <style>
         * {
             margin: 0;
@@ -422,6 +425,7 @@
             "CORES": "Central parts or essential elements",
             "CORN": "A cereal grain grown as food",
             "CORNS": "Multiple cereal grains or foot growths",
+            "CORNERS": "Angular meeting points where surfaces intersect",
             "CORNERSTONES": "Fundamental principles or essential elements",
             "COST": "The price paid for something",
             "COTS": "Small beds or shelters",
@@ -827,6 +831,7 @@
             "NORM": "A standard or usual",
             "NOSE": "The organ of smell",
             "NOTE": "A brief written message",
+            "NOTES": "Brief written records or musical sounds of definite pitch",
             "NOUN": "A word naming something",
             "NUTS": "Hard seeds or crazy",
             "OARS": "Poles for rowing",
@@ -1022,6 +1027,8 @@
             "STEP": "A single pace",
             "STEW": "Food cooked slowly",
             "STIR": "To mix by moving",
+            "STONE": "Hard solid mineral matter formed naturally",
+            "STONES": "Multiple pieces of hard mineral matter",
             "STOP": "To cease movement",
             "SUCH": "Of that kind",
             "SUIT": "Set of matching clothes",
@@ -1233,12 +1240,12 @@
                 this.setupEventListeners();
             }
 
-            initializeGame() {
+            async initializeGame() {
                 this.createGrid();
                 this.generatePuzzle();
-                this.findAllPossibleWords();
+                await this.findAllPossibleWords();
                 this.updateStats();
-                this.loadProgress();
+                await this.loadProgress();
             }
 
             createGrid() {
@@ -1283,8 +1290,16 @@
                 });
             }
 
-            findAllPossibleWords() {
+            async findAllPossibleWords() {
                 this.allPossibleWords = new Set();
+                this.wordDefinitions = new Map(); // Store definitions for found words
+                
+                // Ensure word validator is loaded
+                if (!window.wordValidator.loaded) {
+                    console.log('Initializing comprehensive word validator...');
+                    await window.wordValidator.initialize();
+                }
+                
                 const visited = new Array(16).fill(false);
                 
                 // Debug the current grid
@@ -1306,15 +1321,18 @@
                 });
                 
                 console.log(`Found ${this.allPossibleWords.size} possible words for ${this.currentPuzzle}`);
-                console.log('All found words:', Array.from(this.allPossibleWords).sort());
+                console.log('Sample found words:', Array.from(this.allPossibleWords).slice(0, 20).sort());
+                
+                // Fetch definitions for all found words
+                await this.fetchDefinitionsForWords();
             }
 
             dfsWordSearch(position, currentWord, path, visited) {
                 visited[position] = true;
                 const newWord = currentWord + this.grid[position];
                 
-                // Check if we have a valid 4+ letter word
-                if (newWord.length >= 4 && WORD_DEFINITIONS[newWord.toUpperCase()]) {
+                // Check if we have a valid 4+ letter word using comprehensive validator
+                if (newWord.length >= 4 && window.wordValidator.isValidWord(newWord)) {
                     this.allPossibleWords.add(newWord.toUpperCase());
                 }
                 
@@ -1326,6 +1344,60 @@
                             this.dfsWordSearch(neighbor, newWord, [...path, neighbor], visited.slice());
                         }
                     });
+                }
+            }
+
+            async fetchDefinitionsForWords() {
+                const words = Array.from(this.allPossibleWords);
+                if (words.length === 0) return;
+
+                console.log(`Fetching definitions for ${words.length} words...`);
+                
+                // Show loading state
+                this.showDefinitionLoadingState(true);
+                
+                try {
+                    const definitions = await window.definitionManager.batchGetDefinitions(
+                        words,
+                        (completed, total, currentWord) => {
+                            console.log(`Progress: ${completed}/${total} - ${currentWord}`);
+                            this.updateDefinitionProgress(completed, total);
+                        }
+                    );
+                    
+                    // Store definitions
+                    this.wordDefinitions = definitions;
+                    console.log(`✅ Loaded definitions for ${definitions.size} words`);
+                    
+                } catch (error) {
+                    console.error('Error fetching definitions:', error);
+                } finally {
+                    this.showDefinitionLoadingState(false);
+                }
+            }
+
+            showDefinitionLoadingState(show) {
+                // Add loading indicator to the UI
+                let loader = document.getElementById('definition-loader');
+                if (show && !loader) {
+                    loader = document.createElement('div');
+                    loader.id = 'definition-loader';
+                    loader.innerHTML = `
+                        <div style="text-align: center; padding: 10px; background: #f0f0f0; border-radius: 8px; margin: 10px 0;">
+                            <div>🔍 Loading definitions...</div>
+                            <div id="definition-progress" style="font-size: 0.8em; color: #666;">Preparing...</div>
+                        </div>
+                    `;
+                    document.querySelector('.game-container').appendChild(loader);
+                } else if (!show && loader) {
+                    loader.remove();
+                }
+            }
+
+            updateDefinitionProgress(completed, total) {
+                const progressElement = document.getElementById('definition-progress');
+                if (progressElement) {
+                    progressElement.textContent = `${completed}/${total} words processed`;
                 }
             }
 
@@ -1425,7 +1497,7 @@
                     return;
                 }
                 
-                if (WORD_DEFINITIONS[upperWord] && this.allPossibleWords.has(upperWord)) {
+                if (this.allPossibleWords.has(upperWord)) {
                     this.foundWords.add(upperWord);
                     this.showMessage(`Great! "${upperWord}" found!`, 'success');
                     this.showDefinition(upperWord);
@@ -1452,7 +1524,11 @@
 
             showDefinition(word) {
                 document.getElementById('popupWord').textContent = word;
-                document.getElementById('popupDefinition').textContent = WORD_DEFINITIONS[word];
+                
+                // Get definition from our comprehensive system
+                const definition = this.wordDefinitions?.get(word) || 'Definition not available';
+                document.getElementById('popupDefinition').textContent = definition;
+                
                 document.getElementById('overlay').classList.add('show');
                 document.getElementById('definitionPopup').classList.add('show');
             }
@@ -1487,11 +1563,11 @@
                 document.getElementById('score').textContent = score;
             }
 
-            switchPuzzle() {
+            async switchPuzzle() {
                 this.currentPuzzle = this.currentPuzzle === "CORNERSTONES" ? "ARCHITECTURE" : "CORNERSTONES";
                 this.foundWords.clear();
                 this.generatePuzzle();
-                this.findAllPossibleWords();
+                await this.findAllPossibleWords();
                 this.updateFoundWords();
                 this.updateStats();
                 this.clearSelection();
@@ -1515,7 +1591,7 @@
                 localStorage.setItem('cornerstoneProgress', JSON.stringify(progress));
             }
 
-            loadProgress() {
+            async loadProgress() {
                 const saved = localStorage.getItem('cornerstoneProgress');
                 if (saved) {
                     const progress = JSON.parse(saved);
@@ -1523,7 +1599,7 @@
                         this.currentPuzzle = progress.puzzle;
                         this.foundWords = new Set(progress.foundWords);
                         this.generatePuzzle();
-                        this.findAllPossibleWords();
+                        await this.findAllPossibleWords();
                         this.updateFoundWords();
                         this.updateStats();
                     }

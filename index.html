@@ -892,6 +892,8 @@
                 const word = this.getSelectedWord();
                 if (word.length >= 4) {
                     this.checkWord(word);
+                } else if (word.length > 0) {
+                    this.showMessage(`"${word}" is too short - words must be 4+ letters`, 'error');
                 }
                 
                 this.clearSelection();
@@ -974,8 +976,6 @@
                     this.updateStats();
                     this.updateHintButtons();
                     this.saveProgress();
-                } else if (word.length < 4) {
-                    this.showMessage('Words must be 4+ letters', 'error');
                 } else {
                     this.showMessage('Not a valid word', 'error');
                 }

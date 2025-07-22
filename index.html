@@ -329,6 +329,29 @@
             color: rgba(255, 255, 255, 0.9);
         }
 
+        .letter-position {
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+        }
+
+        .clickable-letter {
+            cursor: pointer;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 3px;
+            padding: 2px;
+            transition: background 0.2s ease;
+        }
+
+        .clickable-letter:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .revealed-letter {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
         .hint-section {
             background: #f8f9fa;
             border-radius: 10px;
@@ -708,6 +731,7 @@
                 this.hintSystem = new HintSystem();
                 this.sortAlphabetically = false;
                 this.revealLetterMode = false;
+                this.letterSelectionWord = null;
                 
                 this.initializeGame();
                 this.setupEventListeners();
@@ -1031,6 +1055,17 @@
                     let content = '<div>';
                     if (wordData.found) {
                         content += `<span class="cornerstone-word-text">${wordData.word}</span>`;
+                    } else if (this.letterSelectionWord === wordData) {
+                        // In letter selection mode - show clickable letter positions
+                        content += '<span class="cornerstone-word-text letter-selection">';
+                        for (let i = 0; i < wordData.word.length; i++) {
+                            const letter = wordData.revealed && wordData.revealed[i] ? wordData.word[i] : '_';
+                            const isClickable = !wordData.revealed || !wordData.revealed[i];
+                            const clickableClass = isClickable ? 'clickable-letter' : 'revealed-letter';
+                            content += `<span class="letter-position ${clickableClass}" data-word-index="${index}" data-letter-index="${i}">${letter}</span>`;
+                            if (i < wordData.word.length - 1) content += ' ';
+                        }
+                        content += '</span>';
                     } else if (wordData.pattern) {
                         content += `<span class="cornerstone-word-text">${wordData.pattern}</span>`;
                     } else {
@@ -1056,10 +1091,24 @@
                         // In reveal letter mode, unfound words are clickable
                         wordEl.style.cursor = 'pointer';
                         wordEl.style.backgroundColor = '#f0f8ff';
-                        wordEl.onclick = () => this.revealLetterInWord(wordData);
+                        wordEl.onclick = () => this.enterLetterSelection(wordData);
+                    } else if (this.letterSelectionWord === wordData) {
+                        // This word is in letter selection mode - show clickable letters
+                        wordEl.style.backgroundColor = '#e6f3ff';
+                        wordEl.style.border = '2px solid #667eea';
                     }
                     
                     listEl.appendChild(wordEl);
+                });
+
+                // Add event delegation for clickable letters
+                const clickableLetters = listEl.querySelectorAll('.clickable-letter');
+                clickableLetters.forEach(letterEl => {
+                    letterEl.onclick = (e) => {
+                        e.stopPropagation(); // Prevent word click
+                        const letterIndex = parseInt(letterEl.dataset.letterIndex);
+                        this.revealLetterAtPosition(this.letterSelectionWord, letterIndex);
+                    };
                 });
             }
 
@@ -1098,40 +1147,46 @@
 
                 // Enter reveal letter mode
                 this.revealLetterMode = true;
-                this.showMessage('Click on a cornerstone word to reveal its first letter!', 'success');
+                this.showMessage('Click on a cornerstone word to choose which letter to reveal!', 'success');
                 this.updateCornerstoneDisplay(); // Refresh to show clickable state
             }
 
-            revealLetterInWord(wordData) {
-                // Exit reveal letter mode
+            enterLetterSelection(wordData) {
+                // Exit reveal letter mode and enter letter selection mode
                 this.revealLetterMode = false;
+                this.letterSelectionWord = wordData;
+                
+                // Initialize revealed array if needed
+                if (!wordData.revealed) {
+                    wordData.revealed = new Array(wordData.word.length).fill(false);
+                }
+
+                // Check if all letters are already revealed
+                if (wordData.revealed.every(revealed => revealed)) {
+                    this.showMessage('All letters in that word are already revealed!', 'error');
+                    this.letterSelectionWord = null;
+                    this.updateCornerstoneDisplay();
+                    return;
+                }
+
+                this.showMessage('Click on a letter position to reveal it!', 'success');
+                this.updateCornerstoneDisplay();
+            }
+
+            revealLetterAtPosition(wordData, letterIndex) {
+                // Exit letter selection mode
+                this.letterSelectionWord = null;
                 
                 // Use hints
                 if (!this.hintSystem.useHints(1)) {
                     this.showMessage('Not enough hints!', 'error');
-                    this.updateCornerstoneDisplay(); // Refresh to remove clickable state
+                    this.updateCornerstoneDisplay();
                     return;
                 }
 
-                const word = wordData.word;
-                
-                // Initialize revealed array if needed
-                if (!wordData.revealed) {
-                    wordData.revealed = new Array(word.length).fill(false);
-                }
-
-                // Find first unrevealed letter
-                let revealIndex = -1;
-                for (let i = 0; i < word.length; i++) {
-                    if (!wordData.revealed[i]) {
-                        revealIndex = i;
-                        break;
-                    }
-                }
-
-                if (revealIndex === -1) {
-                    // All letters already revealed
-                    this.showMessage('All letters in that word are already revealed!', 'error');
+                // Check if letter is already revealed
+                if (wordData.revealed[letterIndex]) {
+                    this.showMessage('That letter is already revealed!', 'error');
                     // Refund the hint
                     this.hintSystem.availableHints++;
                     this.updateCornerstoneDisplay();
@@ -1139,10 +1194,10 @@
                 }
 
                 // Reveal the letter
-                wordData.revealed[revealIndex] = true;
+                wordData.revealed[letterIndex] = true;
                 
                 // Update pattern
-                wordData.pattern = word.split('').map((letter, index) => {
+                wordData.pattern = wordData.word.split('').map((letter, index) => {
                     if (wordData.revealed[index]) return letter;
                     return '_';
                 }).join(' ');
@@ -1156,6 +1211,7 @@
 
             useHintShowLengths() {
                 this.revealLetterMode = false; // Exit reveal letter mode
+                this.letterSelectionWord = null; // Exit letter selection mode
                 if (this.hintSystem.showWordLengths(this.cornerstoneWords)) {
                     this.showMessage('Word lengths revealed!', 'success');
                     this.updateCornerstoneDisplay();
@@ -1167,6 +1223,7 @@
 
             useHintSortAlpha() {
                 this.revealLetterMode = false; // Exit reveal letter mode
+                this.letterSelectionWord = null; // Exit letter selection mode
                 if (this.hintSystem.sortAlphabetically(this.cornerstoneWords)) {
                     this.sortAlphabetically = true;
                     this.showMessage('Words sorted alphabetically!', 'success');
@@ -1179,6 +1236,7 @@
 
             useHintShowDefinitions() {
                 this.revealLetterMode = false; // Exit reveal letter mode
+                this.letterSelectionWord = null; // Exit letter selection mode
                 if (this.hintSystem.revealDefinitions(this.cornerstoneWords)) {
                     this.showMessage('All definitions revealed!', 'success');
                     this.updateCornerstoneDisplay();
@@ -1208,6 +1266,7 @@
                 this.hintSystem = new HintSystem();
                 this.sortAlphabetically = false;
                 this.revealLetterMode = false;
+                this.letterSelectionWord = null;
                 this.cornerstoneWords.forEach(w => {
                     w.found = false;
                     w.revealed = null;

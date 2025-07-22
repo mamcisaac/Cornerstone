@@ -1175,15 +1175,16 @@
         // Cross-shaped grid layout - positions 0,3,12,15 are empty (corners)
         const CROSS_POSITIONS = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14];
         
-        // Hamiltonian paths through the cross that spell CORNERSTONES correctly
-        // Based on the actual grid layout: C-O at top, N-E-R-T in second row, etc.
+        // Hamiltonian paths through the cross that spell words correctly
+        // Grid layout:    -- [1] [2] --
+        //               [4] [5] [6] [7]
+        //               [8] [9][10][11] 
+        //                 --[13][14]--
         const HAMILTONIAN_PATHS = [
-            // Path 0: C-O-R-N-E-R-S-T-O-N-E-S (matching your grid exactly)
-            [1, 2, 6, 4, 5, 9, 8, 7, 13, 10, 11, 14],
-            // Path 1: Alternative arrangement  
-            [4, 5, 1, 2, 6, 7, 8, 9, 10, 11, 13, 14],
-            // Path 2: Another valid arrangement
-            [1, 5, 9, 13, 14, 10, 6, 2, 7, 11, 8, 4]
+            // Path 0: Valid Hamiltonian path for CORNERSTONES
+            [1, 5, 4, 8, 9, 13, 14, 10, 6, 2, 7, 11],
+            // Path 1: Alternative path for ARCHITECTURE
+            [4, 5, 9, 8, 13, 14, 11, 7, 6, 10, 2, 1]
         ];
 
         // Sample puzzles with 12-letter seed words

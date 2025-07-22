@@ -199,7 +199,7 @@
         }
 
         .message.success {
-            color: #22c55e;
+            color: #4299e1;
             font-weight: bold;
         }
 
@@ -209,7 +209,7 @@
         }
 
         .message.cornerstone {
-            color: #667eea;
+            color: #22c55e;
             font-weight: bold;
             font-size: 1.1em;
         }
@@ -707,6 +707,7 @@
                 this.gameStarted = false;
                 this.hintSystem = new HintSystem();
                 this.sortAlphabetically = false;
+                this.revealLetterMode = false;
                 
                 this.initializeGame();
                 this.setupEventListeners();
@@ -1051,6 +1052,11 @@
                     
                     if (wordData.found) {
                         wordEl.onclick = () => this.showDefinition(wordData.word, true);
+                    } else if (this.revealLetterMode) {
+                        // In reveal letter mode, unfound words are clickable
+                        wordEl.style.cursor = 'pointer';
+                        wordEl.style.backgroundColor = '#f0f8ff';
+                        wordEl.onclick = () => this.revealLetterInWord(wordData);
                     }
                     
                     listEl.appendChild(wordEl);
@@ -1090,79 +1096,20 @@
                     return;
                 }
 
-                // Show word selection interface
-                this.showLetterRevealSelection(unfoundWords);
-            }
-
-            showLetterRevealSelection(unfoundWords) {
-                // Create selection overlay
-                const overlay = document.createElement('div');
-                overlay.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.7);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 1000;
-                `;
-
-                const modal = document.createElement('div');
-                modal.style.cssText = `
-                    background: white;
-                    padding: 20px;
-                    border-radius: 10px;
-                    max-width: 400px;
-                    width: 90%;
-                    max-height: 80%;
-                    overflow-y: auto;
-                `;
-
-                modal.innerHTML = `
-                    <h3 style="margin-top: 0;">Choose a word to reveal a letter in:</h3>
-                    <div id="wordSelectionList"></div>
-                    <button onclick="this.parentElement.parentElement.remove()" style="margin-top: 15px; padding: 8px 16px; background: #ccc; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
-                `;
-
-                const wordList = modal.querySelector('#wordSelectionList');
-                unfoundWords.forEach((wordData, index) => {
-                    const button = document.createElement('button');
-                    button.style.cssText = `
-                        display: block;
-                        width: 100%;
-                        margin: 5px 0;
-                        padding: 10px;
-                        background: #667eea;
-                        color: white;
-                        border: none;
-                        border-radius: 5px;
-                        cursor: pointer;
-                        font-size: 14px;
-                    `;
-                    
-                    // Show current pattern or length
-                    const displayText = wordData.pattern || `${wordData.word.length} letters`;
-                    button.textContent = displayText;
-                    
-                    button.onclick = () => {
-                        this.revealLetterInWord(wordData);
-                        overlay.remove();
-                    };
-                    
-                    wordList.appendChild(button);
-                });
-
-                overlay.appendChild(modal);
-                document.body.appendChild(overlay);
+                // Enter reveal letter mode
+                this.revealLetterMode = true;
+                this.showMessage('Click on a cornerstone word to reveal its first letter!', 'success');
+                this.updateCornerstoneDisplay(); // Refresh to show clickable state
             }
 
             revealLetterInWord(wordData) {
+                // Exit reveal letter mode
+                this.revealLetterMode = false;
+                
                 // Use hints
                 if (!this.hintSystem.useHints(1)) {
                     this.showMessage('Not enough hints!', 'error');
+                    this.updateCornerstoneDisplay(); // Refresh to remove clickable state
                     return;
                 }
 
@@ -1187,6 +1134,7 @@
                     this.showMessage('All letters in that word are already revealed!', 'error');
                     // Refund the hint
                     this.hintSystem.availableHints++;
+                    this.updateCornerstoneDisplay();
                     return;
                 }
 
@@ -1207,6 +1155,7 @@
             }
 
             useHintShowLengths() {
+                this.revealLetterMode = false; // Exit reveal letter mode
                 if (this.hintSystem.showWordLengths(this.cornerstoneWords)) {
                     this.showMessage('Word lengths revealed!', 'success');
                     this.updateCornerstoneDisplay();
@@ -1217,6 +1166,7 @@
             }
 
             useHintSortAlpha() {
+                this.revealLetterMode = false; // Exit reveal letter mode
                 if (this.hintSystem.sortAlphabetically(this.cornerstoneWords)) {
                     this.sortAlphabetically = true;
                     this.showMessage('Words sorted alphabetically!', 'success');
@@ -1228,6 +1178,7 @@
             }
 
             useHintShowDefinitions() {
+                this.revealLetterMode = false; // Exit reveal letter mode
                 if (this.hintSystem.revealDefinitions(this.cornerstoneWords)) {
                     this.showMessage('All definitions revealed!', 'success');
                     this.updateCornerstoneDisplay();
@@ -1256,6 +1207,7 @@
                 this.foundWords.clear();
                 this.hintSystem = new HintSystem();
                 this.sortAlphabetically = false;
+                this.revealLetterMode = false;
                 this.cornerstoneWords.forEach(w => {
                     w.found = false;
                     w.revealed = null;

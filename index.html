@@ -748,6 +748,7 @@
                 this.sortAlphabetically = false;
                 this.revealLetterMode = false;
                 this.letterSelectionWord = null;
+                this.cancelHandler = null;
                 
                 this.initializeGame();
                 this.setupEventListeners();
@@ -1124,10 +1125,19 @@
                         wordEl.style.cursor = 'pointer';
                         wordEl.style.backgroundColor = '#f0f8ff';
                         wordEl.onclick = () => this.enterLetterSelection(wordData);
-                    } else if (this.letterSelectionWord === wordData) {
-                        // This word is in letter selection mode - show clickable letters
-                        wordEl.style.backgroundColor = '#e6f3ff';
-                        wordEl.style.border = '2px solid #667eea';
+                    } else if (this.letterSelectionWord) {
+                        // In letter selection mode - other words can be clicked to switch
+                        if (this.letterSelectionWord === wordData) {
+                            // This is the currently selected word - show clickable letters
+                            wordEl.style.backgroundColor = '#e6f3ff';
+                            wordEl.style.border = '2px solid #667eea';
+                        } else if (!wordData.found) {
+                            // Other unfound words are clickable to switch selection
+                            wordEl.style.cursor = 'pointer';
+                            wordEl.style.backgroundColor = '#f8f8f8';
+                            wordEl.style.border = '1px dashed #ccc';
+                            wordEl.onclick = () => this.switchLetterSelection(wordData);
+                        }
                     }
                     
                     listEl.appendChild(wordEl);
@@ -1201,13 +1211,65 @@
                     return;
                 }
 
-                this.showMessage('Click on a letter position to reveal it!', 'success');
+                this.showMessage('Click on a letter position to reveal it, or click another word to switch!', 'success');
                 this.updateCornerstoneDisplay();
+                this.addCancelHandler();
+            }
+
+            switchLetterSelection(wordData) {
+                // Switch to a different word for letter selection
+                this.letterSelectionWord = wordData;
+                
+                // Initialize revealed array if needed
+                if (!wordData.revealed) {
+                    wordData.revealed = new Array(wordData.word.length).fill(false);
+                }
+
+                // Check if all letters are already revealed
+                if (wordData.revealed.every(revealed => revealed)) {
+                    this.showMessage('All letters in that word are already revealed!', 'error');
+                    this.letterSelectionWord = null;
+                    this.updateCornerstoneDisplay();
+                    this.removeCancelHandler();
+                    return;
+                }
+
+                this.showMessage('Click on a letter position to reveal it, or click another word to switch!', 'success');
+                this.updateCornerstoneDisplay();
+            }
+
+            addCancelHandler() {
+                // Add click handler to cancel letter selection when clicking elsewhere
+                if (!this.cancelHandler) {
+                    this.cancelHandler = (e) => {
+                        // Don't cancel if clicking on cornerstone words or letters
+                        if (!e.target.closest('.cornerstone-word') && 
+                            !e.target.closest('.clickable-letter')) {
+                            this.cancelLetterSelection();
+                        }
+                    };
+                }
+                document.addEventListener('click', this.cancelHandler);
+            }
+
+            removeCancelHandler() {
+                if (this.cancelHandler) {
+                    document.removeEventListener('click', this.cancelHandler);
+                }
+            }
+
+            cancelLetterSelection() {
+                this.letterSelectionWord = null;
+                this.revealLetterMode = false;
+                this.showMessage('Letter reveal cancelled', 'error');
+                this.updateCornerstoneDisplay();
+                this.removeCancelHandler();
             }
 
             revealLetterAtPosition(wordData, letterIndex) {
                 // Exit letter selection mode
                 this.letterSelectionWord = null;
+                this.removeCancelHandler();
                 
                 // Use hints
                 if (!this.hintSystem.useHints(1)) {
@@ -1244,6 +1306,7 @@
             useHintShowLengths() {
                 this.revealLetterMode = false; // Exit reveal letter mode
                 this.letterSelectionWord = null; // Exit letter selection mode
+                this.removeCancelHandler(); // Remove cancel handler
                 if (this.hintSystem.showWordLengths(this.cornerstoneWords)) {
                     this.showMessage('Word lengths revealed!', 'success');
                     this.updateCornerstoneDisplay();
@@ -1256,6 +1319,7 @@
             useHintSortAlpha() {
                 this.revealLetterMode = false; // Exit reveal letter mode
                 this.letterSelectionWord = null; // Exit letter selection mode
+                this.removeCancelHandler(); // Remove cancel handler
                 if (this.hintSystem.sortAlphabetically(this.cornerstoneWords)) {
                     this.sortAlphabetically = true;
                     this.showMessage('Words sorted alphabetically!', 'success');
@@ -1269,6 +1333,7 @@
             useHintShowDefinitions() {
                 this.revealLetterMode = false; // Exit reveal letter mode
                 this.letterSelectionWord = null; // Exit letter selection mode
+                this.removeCancelHandler(); // Remove cancel handler
                 if (this.hintSystem.revealDefinitions(this.cornerstoneWords)) {
                     this.showMessage('All definitions revealed!', 'success');
                     this.updateCornerstoneDisplay();
@@ -1299,6 +1364,7 @@
                 this.sortAlphabetically = false;
                 this.revealLetterMode = false;
                 this.letterSelectionWord = null;
+                this.removeCancelHandler(); // Remove cancel handler
                 this.cornerstoneWords.forEach(w => {
                     w.found = false;
                     w.revealed = null;

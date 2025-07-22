@@ -234,7 +234,6 @@
         }
 
         .found-word {
-            background: #667eea;
             color: white;
             padding: 4px 8px;
             border-radius: 6px;
@@ -243,8 +242,21 @@
             transition: all 0.2s ease;
         }
 
-        .found-word:hover {
-            background: #5a67d8;
+        .found-word.cornerstone {
+            background: #48bb78;
+        }
+
+        .found-word.regular {
+            background: #4299e1;
+        }
+
+        .found-word.cornerstone:hover {
+            background: #38a169;
+            transform: scale(1.05);
+        }
+
+        .found-word.regular:hover {
+            background: #3182ce;
             transform: scale(1.05);
         }
 
@@ -979,9 +991,9 @@
                 const sortedWords = Array.from(this.foundWords).sort();
                 sortedWords.forEach(word => {
                     const wordEl = document.createElement('span');
-                    wordEl.className = 'found-word';
-                    wordEl.textContent = word;
                     const isCornerstone = this.cornerstoneWords.some(w => w.word === word);
+                    wordEl.className = isCornerstone ? 'found-word cornerstone' : 'found-word regular';
+                    wordEl.textContent = word;
                     wordEl.onclick = () => this.showDefinition(word, isCornerstone);
                     wordListEl.appendChild(wordEl);
                 });

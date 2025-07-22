@@ -1190,6 +1190,7 @@
                 this.revealLetterMode = true;
                 this.showMessage('Click on a cornerstone word to choose which letter to reveal!', 'success');
                 this.updateCornerstoneDisplay(); // Refresh to show clickable state
+                this.addCancelHandler(); // Allow canceling by clicking elsewhere
             }
 
             enterLetterSelection(wordData) {
@@ -1207,12 +1208,13 @@
                     this.showMessage('All letters in that word are already revealed!', 'error');
                     this.letterSelectionWord = null;
                     this.updateCornerstoneDisplay();
+                    this.removeCancelHandler();
                     return;
                 }
 
                 this.showMessage('Click on a letter position to reveal it, or click another word to switch!', 'success');
                 this.updateCornerstoneDisplay();
-                this.addCancelHandler();
+                // Cancel handler is already added from reveal letter mode, no need to add again
             }
 
             switchLetterSelection(wordData) {

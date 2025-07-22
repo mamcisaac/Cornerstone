@@ -304,10 +304,13 @@
             background: #f0f0f0;
             padding: 10px 15px;
             border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .cornerstone-word > div:first-child {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.2s;
         }
 
         .cornerstone-word.found {
@@ -338,8 +341,10 @@
         .word-definition {
             font-size: 0.85em;
             color: #666;
-            margin-top: 5px;
+            margin-top: 8px;
             font-style: italic;
+            line-height: 1.4;
+            display: block;
         }
 
         .cornerstone-word.found .word-definition {
@@ -754,17 +759,9 @@
                         <span>Reveal Letter</span>
                         <span class="hint-cost">1 hint</span>
                     </button>
-                    <button class="hint-button" id="showLengthsBtn" onclick="game.useHintShowLengths()">
-                        <span>Show Word Lengths</span>
-                        <span class="hint-cost" id="lengthsCost">3 hints</span>
-                    </button>
-                    <button class="hint-button" id="sortAlphaBtn" onclick="game.useHintSortAlpha()">
-                        <span>Sort Alphabetically</span>
-                        <span class="hint-cost">3 hints</span>
-                    </button>
-                    <button class="hint-button" id="showDefsBtn" onclick="game.useHintShowDefinitions()">
-                        <span>Show All Definitions</span>
-                        <span class="hint-cost" id="defsCost">8 hints</span>
+                    <button class="hint-button" id="showDefinitionBtn" onclick="game.useHintShowDefinition()">
+                        <span>Show Definition</span>
+                        <span class="hint-cost">1 hint</span>
                     </button>
                 </div>
             </div>
@@ -906,6 +903,7 @@
                 this.sortAlphabetically = false;
                 this.revealLetterMode = false;
                 this.letterSelectionWord = null;
+                this.definitionRevealMode = false;
                 this.cancelHandler = null;
                 
                 this.initializeGame();
@@ -998,7 +996,6 @@
                         found: false,
                         revealed: null,
                         pattern: null,
-                        showLength: false,
                         showDefinition: false,
                         definition: word === currentSeedWord && SEED_WORDS[currentSeedWord] 
                             ? SEED_WORDS[currentSeedWord].definition 
@@ -1273,9 +1270,8 @@
                 listEl.innerHTML = '';
                 
                 let displayWords = [...this.cornerstoneWords];
-                if (this.sortAlphabetically) {
-                    displayWords.sort((a, b) => a.word.localeCompare(b.word));
-                }
+                // Always sort alphabetically
+                displayWords.sort((a, b) => a.word.localeCompare(b.word));
                 
                 displayWords.forEach((wordData, index) => {
                     const wordEl = document.createElement('div');
@@ -1302,9 +1298,8 @@
                         content += `<span class="cornerstone-word-text">${hiddenPattern}</span>`;
                     }
                     
-                    if (wordData.showLength || wordData.found) {
-                        content += `<span class="word-length">(${wordData.word.length} letters)</span>`;
-                    }
+                    // Always show word length
+                    content += `<span class="word-length">(${wordData.word.length} letters)</span>`;
                     
                     content += '</div>';
                     
@@ -1333,6 +1328,13 @@
                             wordEl.style.border = '1px dashed #ccc';
                             wordEl.onclick = () => this.switchLetterSelection(wordData);
                         }
+                    } else if (this.definitionRevealMode) {
+                        // In definition reveal mode, unfound words without definitions are clickable
+                        if (!wordData.found && !wordData.showDefinition) {
+                            wordEl.style.cursor = 'pointer';
+                            wordEl.style.backgroundColor = '#f0f8ff';
+                            wordEl.onclick = () => this.revealDefinitionForWord(wordData);
+                        }
                     }
                     
                     listEl.appendChild(wordEl);
@@ -1350,22 +1352,13 @@
             }
 
             updateHintButtons() {
-                const costs = this.hintSystem.getHintCosts(this.cornerstoneWords.length);
                 const hints = this.hintSystem.availableHints;
                 
-                // Update cost displays
-                document.getElementById('lengthsCost').textContent = `${costs.showLengths} hints`;
-                document.getElementById('defsCost').textContent = `${costs.revealDefinitions} hints`;
-                
                 // Enable/disable buttons
-                document.getElementById('revealLetterBtn').disabled = hints < costs.revealLetter || 
+                document.getElementById('revealLetterBtn').disabled = hints < 1 || 
                     this.cornerstoneWords.every(w => w.found);
-                document.getElementById('showLengthsBtn').disabled = hints < costs.showLengths || 
-                    this.hintSystem.usedHintTypes.has('lengths');
-                document.getElementById('sortAlphaBtn').disabled = hints < costs.sortAlphabetically || 
-                    this.hintSystem.usedHintTypes.has('alphabetical');
-                document.getElementById('showDefsBtn').disabled = hints < costs.revealDefinitions || 
-                    this.hintSystem.usedHintTypes.has('definitions');
+                document.getElementById('showDefinitionBtn').disabled = hints < 1 || 
+                    this.cornerstoneWords.every(w => w.found);
             }
 
             useHintRevealLetter() {
@@ -1459,7 +1452,9 @@
             cancelLetterSelection() {
                 this.letterSelectionWord = null;
                 this.revealLetterMode = false;
-                this.showMessage('Letter reveal cancelled', 'error');
+                this.definitionRevealMode = false;
+                const message = this.definitionRevealMode ? 'Definition reveal cancelled' : 'Letter reveal cancelled';
+                this.showMessage(message, 'error');
                 this.updateCornerstoneDisplay();
                 this.removeCancelHandler();
             }
@@ -1501,51 +1496,52 @@
                 this.saveProgress();
             }
 
-            useHintShowLengths() {
-                this.revealLetterMode = false; // Exit reveal letter mode
-                this.letterSelectionWord = null; // Exit letter selection mode
-                this.removeCancelHandler(); // Remove cancel handler
-                if (this.hintSystem.showWordLengths(this.cornerstoneWords)) {
-                    this.showMessage('Word lengths revealed!', 'success');
-                    this.updateCornerstoneDisplay();
-                    this.updateStats();
-                    this.updateHintButtons();
-                    this.saveProgress();
+            useHintShowDefinition() {
+                // Check if player has enough hints
+                if (!this.hintSystem.canUseHint(1)) {
+                    this.showMessage('Not enough hints!', 'error');
+                    return;
                 }
+
+                // Find unfound cornerstone words
+                const unfoundWords = this.cornerstoneWords.filter(w => !w.found && !w.showDefinition);
+                if (unfoundWords.length === 0) {
+                    this.showMessage('All definitions already revealed!', 'error');
+                    return;
+                }
+
+                // Enter definition reveal mode
+                this.definitionRevealMode = true;
+                this.showMessage('Click on a cornerstone word to reveal its definition!', 'success');
+                this.updateCornerstoneDisplay(); // Refresh to show clickable state
+                this.addCancelHandler(); // Allow canceling by clicking elsewhere
             }
 
-            useHintSortAlpha() {
-                this.revealLetterMode = false; // Exit reveal letter mode
-                this.letterSelectionWord = null; // Exit letter selection mode
-                this.removeCancelHandler(); // Remove cancel handler
-                if (this.hintSystem.sortAlphabetically(this.cornerstoneWords)) {
-                    this.sortAlphabetically = true;
-                    this.showMessage('Words sorted alphabetically!', 'success');
+            revealDefinitionForWord(wordData) {
+                // Use hints
+                if (!this.hintSystem.useHints(1)) {
+                    this.showMessage('Not enough hints!', 'error');
+                    this.definitionRevealMode = false;
                     this.updateCornerstoneDisplay();
-                    this.updateStats();
-                    this.updateHintButtons();
-                    this.saveProgress();
+                    this.removeCancelHandler();
+                    return;
                 }
-            }
 
-            useHintShowDefinitions() {
-                this.revealLetterMode = false; // Exit reveal letter mode
-                this.letterSelectionWord = null; // Exit letter selection mode
-                this.removeCancelHandler(); // Remove cancel handler
-                if (this.hintSystem.revealDefinitions(this.cornerstoneWords)) {
-                    this.showMessage('All definitions revealed!', 'success');
-                    this.updateCornerstoneDisplay();
-                    this.updateStats();
-                    this.updateHintButtons();
-                    this.saveProgress();
-                }
+                // Reveal the definition
+                wordData.showDefinition = true;
+                this.definitionRevealMode = false;
+                this.removeCancelHandler();
+                this.showMessage('Definition revealed!', 'success');
+                this.updateCornerstoneDisplay();
+                this.updateStats();
+                this.updateHintButtons();
+                this.saveProgress();
             }
 
             async switchPuzzle() {
                 this.currentPuzzle = this.currentPuzzle === "CORNERSTONES" ? "ARCHITECTURE" : "CORNERSTONES";
                 this.foundWords.clear();
                 this.hintSystem = new HintSystem();
-                this.sortAlphabetically = false;
                 this.generatePuzzle();
                 await this.findAllPossibleWords();
                 this.updateFoundWords();
@@ -1559,15 +1555,14 @@
             newGame() {
                 this.foundWords.clear();
                 this.hintSystem = new HintSystem();
-                this.sortAlphabetically = false;
                 this.revealLetterMode = false;
                 this.letterSelectionWord = null;
+                this.definitionRevealMode = false;
                 this.removeCancelHandler(); // Remove cancel handler
                 this.cornerstoneWords.forEach(w => {
                     w.found = false;
                     w.revealed = null;
                     w.pattern = null;
-                    w.showLength = false;
                     w.showDefinition = false;
                 });
                 this.updateFoundWords();

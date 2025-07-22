@@ -574,11 +574,38 @@
             transform: translate(-50%, -50%);
             background: white;
             padding: 30px;
+            padding-top: 40px;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
             z-index: 1000;
             display: none;
+        }
+
+        .instructions-close-x {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .instructions-close-x:hover {
+            background: #5a67d8;
         }
 
         .instructions-popup.show {
@@ -683,6 +710,23 @@
             .stats {
                 grid-template-columns: 1fr;
             }
+
+            .instructions-popup {
+                padding: 20px;
+                padding-top: 35px;
+                width: 95%;
+                max-height: 85vh;
+                top: 50%;
+            }
+
+            .instructions-close-x {
+                top: 5px;
+                right: 5px;
+            }
+
+            .close-instructions {
+                padding: 12px 24px;
+            }
         }
     </style>
 </head>
@@ -777,6 +821,7 @@
     </div>
 
     <div class="instructions-popup" id="instructionsPopup">
+        <button class="instructions-close-x" onclick="game.closeInstructions()" aria-label="Close">×</button>
         <h2>How to Play Cornerstones</h2>
         
         <div class="section">
@@ -1228,11 +1273,28 @@
             showInstructions() {
                 document.getElementById('overlay').classList.add('show');
                 document.getElementById('instructionsPopup').classList.add('show');
+                
+                // Add click handler to overlay for closing
+                const overlay = document.getElementById('overlay');
+                const instructionsClickHandler = (e) => {
+                    if (e.target === overlay) {
+                        this.closeInstructions();
+                    }
+                };
+                overlay.addEventListener('click', instructionsClickHandler);
+                overlay._instructionsClickHandler = instructionsClickHandler;
             }
 
             closeInstructions() {
                 document.getElementById('overlay').classList.remove('show');
                 document.getElementById('instructionsPopup').classList.remove('show');
+                
+                // Remove click handler
+                const overlay = document.getElementById('overlay');
+                if (overlay._instructionsClickHandler) {
+                    overlay.removeEventListener('click', overlay._instructionsClickHandler);
+                    delete overlay._instructionsClickHandler;
+                }
             }
 
             updateFoundWords() {

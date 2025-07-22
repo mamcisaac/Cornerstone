@@ -541,6 +541,71 @@
             display: block;
         }
 
+        /* Hint Options Menu Styles */
+        .hint-options-menu {
+            position: fixed;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1001;
+            display: none;
+            min-width: 200px;
+        }
+
+        .hint-options-menu.show {
+            display: block;
+        }
+
+        .hint-options-menu h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .hint-option-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .hint-option-button:hover {
+            background: #5a67d8;
+            transform: translateX(5px);
+        }
+
+        .hint-option-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .hint-option-cost {
+            float: right;
+            font-size: 0.9em;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .cornerstone-word.clickable-hint {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cornerstone-word.clickable-hint:hover {
+            background: #e6f3ff;
+            transform: translateX(5px);
+        }
+
         .help-button {
             position: absolute;
             top: 20px;
@@ -820,6 +885,18 @@
         <button class="close-btn" onclick="game.closeDefinition()">Close</button>
     </div>
 
+    <div class="hint-options-menu" id="hintOptionsMenu">
+        <h4>Choose Hint Type</h4>
+        <button class="hint-option-button" id="hintRevealLetterOption" onclick="game.selectHintOption('letter')">
+            Reveal a Letter
+            <span class="hint-option-cost">1 hint</span>
+        </button>
+        <button class="hint-option-button" id="hintRevealDefinitionOption" onclick="game.selectHintOption('definition')">
+            Show Definition
+            <span class="hint-option-cost">1 hint</span>
+        </button>
+    </div>
+
     <div class="instructions-popup" id="instructionsPopup">
         <button class="instructions-close-x" onclick="game.closeInstructions()" aria-label="Close">×</button>
         <h2>How to Play Cornerstones</h2>
@@ -881,16 +958,7 @@
         }
 
         // Import required data (these will be loaded from external files)
-        // Check if variables are already defined before declaring them
-        if (typeof WORD_DEFINITIONS === 'undefined') {
-            var WORD_DEFINITIONS = window.WORD_DEFINITIONS || {};
-        }
-        if (typeof COMMON_WORDS_SET === 'undefined') {
-            var COMMON_WORDS_SET = window.COMMON_WORDS_SET || new Set();
-        }
-        if (typeof getDefinition === 'undefined') {
-            var getDefinition = window.getDefinition || function(word) { return "A valid English word"; };
-        }
+        // The global variables are now properly exported from their respective files
 
         // Cross-shaped grid layout and adjacency
         const CROSS_POSITIONS = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14];
@@ -950,6 +1018,8 @@
                 this.letterSelectionWord = null;
                 this.definitionRevealMode = false;
                 this.cancelHandler = null;
+                this.selectedHintWord = null;
+                this.hintMenuHandler = null;
                 
                 this.initializeGame();
                 this.setupEventListeners();
@@ -1397,6 +1467,12 @@
                             wordEl.style.backgroundColor = '#f0f8ff';
                             wordEl.onclick = () => this.revealDefinitionForWord(wordData);
                         }
+                    } else {
+                        // Default mode - unrevealed words are clickable if player has hints
+                        if (!wordData.found && this.hintSystem.availableHints > 0) {
+                            wordEl.classList.add('clickable-hint');
+                            wordEl.onclick = (e) => this.showHintOptionsMenu(wordData, e);
+                        }
                     }
                     
                     listEl.appendChild(wordEl);
@@ -1621,6 +1697,7 @@
                 this.letterSelectionWord = null;
                 this.definitionRevealMode = false;
                 this.removeCancelHandler(); // Remove cancel handler
+                this.closeHintOptionsMenu(); // Close hint menu if open
                 this.cornerstoneWords.forEach(w => {
                     w.found = false;
                     w.revealed = null;
@@ -1645,6 +1722,80 @@
                     date: new Date().toDateString()
                 };
                 localStorage.setItem('cornerstonesProgress', JSON.stringify(progress));
+            }
+
+            showHintOptionsMenu(wordData, event) {
+                event.stopPropagation();
+                this.selectedHintWord = wordData;
+                
+                const menu = document.getElementById('hintOptionsMenu');
+                const rect = event.target.getBoundingClientRect();
+                
+                // Show the menu first to get accurate dimensions
+                menu.classList.add('show');
+                
+                // Position the menu near the clicked word
+                menu.style.left = rect.left + 'px';
+                menu.style.top = (rect.bottom + 10) + 'px';
+                
+                // Adjust if menu goes off screen
+                setTimeout(() => {
+                    const menuRect = menu.getBoundingClientRect();
+                    if (menuRect.right > window.innerWidth) {
+                        menu.style.left = (window.innerWidth - menuRect.width - 20) + 'px';
+                    }
+                    if (menuRect.bottom > window.innerHeight) {
+                        menu.style.top = (rect.top - menu.offsetHeight - 10) + 'px';
+                    }
+                }, 0);
+                
+                // Add click handler to close menu when clicking elsewhere
+                this.addHintMenuHandler();
+            }
+            
+            addHintMenuHandler() {
+                if (!this.hintMenuHandler) {
+                    this.hintMenuHandler = (e) => {
+                        if (!e.target.closest('#hintOptionsMenu') && !e.target.closest('.cornerstone-word')) {
+                            this.closeHintOptionsMenu();
+                        }
+                    };
+                }
+                setTimeout(() => {
+                    document.addEventListener('click', this.hintMenuHandler);
+                }, 0);
+            }
+            
+            closeHintOptionsMenu() {
+                document.getElementById('hintOptionsMenu').classList.remove('show');
+                if (this.hintMenuHandler) {
+                    document.removeEventListener('click', this.hintMenuHandler);
+                }
+                this.selectedHintWord = null;
+            }
+            
+            selectHintOption(optionType) {
+                this.closeHintOptionsMenu();
+                
+                if (!this.selectedHintWord) return;
+                
+                // Check if player has enough hints
+                if (!this.hintSystem.canUseHint(1)) {
+                    this.showMessage('Not enough hints!', 'error');
+                    this.selectedHintWord = null;
+                    return;
+                }
+                
+                if (optionType === 'letter') {
+                    // Enter letter selection mode for this word
+                    this.revealLetterMode = true;
+                    this.enterLetterSelection(this.selectedHintWord);
+                } else if (optionType === 'definition') {
+                    // Reveal definition for this word
+                    this.revealDefinitionForWord(this.selectedHintWord);
+                }
+                
+                this.selectedHintWord = null;
             }
 
             async loadProgress() {

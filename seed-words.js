@@ -780,3 +780,8 @@ const SEED_WORDS = {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = SEED_WORDS;
 }
+
+// Also make it available globally for browser use
+if (typeof window !== 'undefined') {
+    window.SEED_WORDS = SEED_WORDS;
+}

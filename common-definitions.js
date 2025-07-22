@@ -63,7 +63,11 @@ function getDefinition(word) {
 }
 
 // Make function available globally
-window.getDefinition = getDefinition;
+if (typeof window !== 'undefined') {
+  window.getDefinition = getDefinition;
+  window.WORD_DEFINITIONS = COMMON_DEFINITIONS; // For backward compatibility
+  window.COMMON_DEFINITIONS = COMMON_DEFINITIONS;
+}
 
 // Export for use in the game
 if (typeof module !== 'undefined' && module.exports) {

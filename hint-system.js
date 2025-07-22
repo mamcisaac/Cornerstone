@@ -133,3 +133,8 @@ class HintSystem {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = HintSystem;
 }
+
+// Also make it available globally for browser use
+if (typeof window !== 'undefined') {
+    window.HintSystem = HintSystem;
+}

@@ -719,9 +719,9 @@
             "ARCHITECTURE": { seedWord: "ARCHITECTURE", pathIndex: 1 }
         };
         const ADJACENCY = {
-            1: [2, 5, 6],
+            1: [2, 4, 5, 6],
             2: [1, 5, 6, 7],
-            4: [5, 8, 9],
+            4: [1, 5, 8, 9],
             5: [1, 2, 4, 6, 8, 9, 10],
             6: [1, 2, 5, 7, 9, 10, 11],
             7: [2, 6, 10, 11],
@@ -914,12 +914,23 @@
                 if (word.length >= 4) {
                     this.checkWord(word);
                 } else if (word.length > 0) {
-                    this.showMessage(`"${word}" is too short - words must be 4+ letters`, 'error');
+                    this.showMessage('Words must be at least 4 letters', 'error');
                 }
             }
 
             addToPath(index) {
-                if (this.selectedPath.includes(index)) return;
+                // Check if we're going back to a previously selected letter
+                const existingIndex = this.selectedPath.indexOf(index);
+                if (existingIndex !== -1) {
+                    // If it's the second-to-last letter, remove the last letter (backtrack)
+                    if (existingIndex === this.selectedPath.length - 2) {
+                        this.selectedPath.pop(); // Remove the last letter
+                        this.updateSelection();
+                        this.updateCurrentWord();
+                    }
+                    // If it's any other previously selected letter, do nothing
+                    return;
+                }
                 
                 if (this.selectedPath.length > 0) {
                     const lastIndex = this.selectedPath[this.selectedPath.length - 1];
@@ -1253,9 +1264,10 @@
                 // Add click handler to cancel letter selection when clicking elsewhere
                 if (!this.cancelHandler) {
                     this.cancelHandler = (e) => {
-                        // Don't cancel if clicking on cornerstone words or letters
+                        // Don't cancel if clicking on cornerstone words, letters, or hint buttons
                         if (!e.target.closest('.cornerstone-word') && 
-                            !e.target.closest('.clickable-letter')) {
+                            !e.target.closest('.clickable-letter') &&
+                            !e.target.closest('.hint-button')) {
                             this.cancelLetterSelection();
                         }
                     };

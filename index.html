@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cornerstone - Daily Word Puzzle</title>
+    <title>Cornerstones - Daily Word Puzzle</title>
     <!-- Load comprehensive word validation and definition systems -->
     <script src="words.js"></script>
     <script src="definitions.js"></script>
@@ -293,7 +293,7 @@
 <body>
     <div class="game-container">
         <div class="header">
-            <h1 class="title">Cornerstone</h1>
+            <h1 class="title">Cornerstones</h1>
             <p class="subtitle">Find words in the cross-shaped grid (4+ letters)</p>
         </div>
 
@@ -1226,7 +1226,7 @@
             14: [9, 10, 11, 13]              // Bottom row right
         };
 
-        class CornerstoneGame {
+        class CornerstonesGame {
             constructor() {
                 this.currentPuzzle = "CORNERSTONES";
                 this.grid = [];
@@ -1588,11 +1588,11 @@
                     foundWords: Array.from(this.foundWords),
                     date: new Date().toDateString()
                 };
-                localStorage.setItem('cornerstoneProgress', JSON.stringify(progress));
+                localStorage.setItem('cornerstonesProgress', JSON.stringify(progress));
             }
 
             async loadProgress() {
-                const saved = localStorage.getItem('cornerstoneProgress');
+                const saved = localStorage.getItem('cornerstonesProgress');
                 if (saved) {
                     const progress = JSON.parse(saved);
                     if (progress.date === new Date().toDateString()) {
@@ -1610,7 +1610,7 @@
         // Initialize the game when page loads
         let game;
         document.addEventListener('DOMContentLoaded', () => {
-            game = new CornerstoneGame();
+            game = new CornerstonesGame();
         });
     </script>
 </body>

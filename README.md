@@ -1,10 +1,10 @@
-# Cornerstone - Daily Word Puzzle Game
+# Cornerstones - Daily Word Puzzle Game
 
 A challenging word puzzle game where you find 4+ letter words in a cross-shaped grid. Each puzzle is generated from a 12-letter seed word placed along a Hamiltonian path.
 
 ## 🎮 Play Now
 
-**[Play Cornerstone](https://mamcisaac.github.io/Cornerstone)**
+**[Play Cornerstones](https://mamcisaac.github.io/Cornerstone)**
 
 ## 🎯 How to Play
 
@@ -130,3 +130,24 @@ The game is fully responsive and works great on:
 - **STERN** (5 letters, 5 points) - "Serious and uncompromising in manner or approach"
 
 Perfect for friends and family - just share the URL and start playing together!
+
+## 🔍 Comprehensive Word Discovery
+
+This game features a revolutionary word discovery system that finds **ALL possible English words** that can be traced through the grid:
+
+### 🎯 Advanced Features
+- **370k+ Word Dictionary**: Uses comprehensive English word list for complete coverage
+- **3-Tier Definition System**: 
+  - Dictionary API for authoritative definitions
+  - AI-powered fallback for quality definitions
+  - Smart filtering to avoid circular references
+- **Dynamic Word Count**: CORNERSTONES grid typically yields 50-100+ valid words
+- **Quality Definitions**: Every word comes with a proper, non-circular definition ready for progressive hints
+
+### 🚀 Technical Excellence
+- **O(1) Word Validation**: Lightning-fast lookup with comprehensive coverage
+- **Intelligent Definition Caching**: Pre-loads definitions for all discoverable words
+- **Progressive Loading**: Smooth user experience with loading states
+- **Offline Ready**: Works without internet after initial definition loading
+
+No more missing obvious words like STONE, STONES, CORNERS, or NOTES - this system finds them all!

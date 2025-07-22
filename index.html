@@ -8,6 +8,7 @@
     <script src="words.js"></script>
     <script src="common-words.js"></script>
     <script src="common-definitions.js"></script>
+    <script src="seed-words.js"></script>
     <script src="hint-system.js"></script>
     <style>
         * {
@@ -347,25 +348,42 @@
 
         .letter-position {
             display: inline-block;
-            width: 20px;
+            width: 28px;
+            height: 28px;
             text-align: center;
+            line-height: 28px;
+            margin: 0 2px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 14px;
         }
 
         .clickable-letter {
             cursor: pointer;
-            background: #f0f8ff;
-            border-radius: 3px;
-            padding: 2px;
-            transition: background 0.2s ease;
+            background: #4a90e2;
+            color: white;
+            border: 2px solid #357abd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
         }
 
         .clickable-letter:hover {
-            background: #e0e8ff;
+            background: #357abd;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        .clickable-letter:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .revealed-letter {
-            color: #000;
+            color: #666;
             font-weight: bold;
+            background: #f8f8f8;
+            border: 2px solid #ddd;
         }
 
         .hint-section {
@@ -518,6 +536,91 @@
             display: block;
         }
 
+        .help-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .help-button:hover {
+            background: #5a67d8;
+            transform: scale(1.1);
+        }
+
+        .header {
+            position: relative;
+        }
+
+        .instructions-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-width: 500px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .instructions-popup.show {
+            display: block;
+        }
+
+        .instructions-popup h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .instructions-popup .section {
+            margin-bottom: 20px;
+        }
+
+        .instructions-popup .section h3 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .instructions-popup ul {
+            margin-left: 20px;
+            color: #4a5568;
+        }
+
+        .instructions-popup li {
+            margin-bottom: 8px;
+        }
+
+        .close-instructions {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            font-size: 16px;
+        }
+
+        .close-instructions:hover {
+            background: #5a67d8;
+        }
+
         @media (max-width: 1024px) {
             .main-container {
                 flex-direction: column;
@@ -591,6 +694,7 @@
             <div class="header">
                 <h1 class="title">Cornerstones</h1>
                 <p class="subtitle">Find cornerstone words to win!</p>
+                <button class="help-button" onclick="game.showInstructions()" title="How to play">?</button>
             </div>
 
             <div class="game-grid" id="gameGrid">
@@ -675,6 +779,44 @@
         <button class="close-btn" onclick="game.closeDefinition()">Close</button>
     </div>
 
+    <div class="instructions-popup" id="instructionsPopup">
+        <h2>How to Play Cornerstones</h2>
+        
+        <div class="section">
+            <h3>🎯 Goal</h3>
+            <p>Find all the <strong>cornerstone words</strong> hidden in the grid to win!</p>
+        </div>
+
+        <div class="section">
+            <h3>🎮 How to Play</h3>
+            <ul>
+                <li>Drag your finger or mouse to connect adjacent letters</li>
+                <li>Letters must be connected horizontally, vertically, or diagonally</li>
+                <li>Form words with 4 or more letters</li>
+                <li>You can backtrack by dragging back to the previous letter</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>📝 Word Types</h3>
+            <ul>
+                <li><strong style="color: #22c55e;">Green words</strong> = Cornerstone words (find all to win!)</li>
+                <li><strong style="color: #3b82f6;">Blue words</strong> = Regular words (earn hints)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>💡 Hints</h3>
+            <ul>
+                <li>Earn 1 hint for each regular word found</li>
+                <li>Spend hints to reveal letters, show word lengths, or get other help</li>
+                <li>Use hints strategically to find cornerstone words</li>
+            </ul>
+        </div>
+
+        <button class="close-instructions" onclick="game.closeInstructions()">Got it!</button>
+    </div>
+
     <script>
         // Mobile tab switching
         function switchTab(tabName) {
@@ -711,12 +853,28 @@
         // Cross-shaped grid layout and adjacency
         const CROSS_POSITIONS = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14];
         const HAMILTONIAN_PATHS = [
-            [1, 5, 4, 8, 9, 13, 14, 10, 6, 2, 7, 11],
-            [4, 5, 9, 8, 13, 14, 11, 7, 6, 10, 2, 1]
+            [1, 5, 4, 8, 9, 13, 14, 10, 6, 2, 7, 11],  // Path 0
+            [4, 5, 9, 8, 13, 14, 11, 7, 6, 10, 2, 1],  // Path 1
+            [1, 2, 7, 11, 14, 13, 8, 4, 5, 6, 10, 9],  // Path 2
+            [5, 1, 2, 6, 10, 14, 13, 9, 8, 4, 7, 11],  // Path 3
+            [11, 7, 2, 1, 5, 9, 13, 14, 10, 6, 4, 8],  // Path 4
+            [8, 4, 5, 1, 6, 2, 7, 11, 14, 10, 9, 13],  // Path 5
+            [9, 5, 4, 8, 13, 14, 10, 6, 1, 2, 7, 11],  // Path 6
+            [14, 13, 9, 10, 11, 7, 6, 2, 1, 5, 4, 8],  // Path 7
+            [2, 1, 4, 5, 9, 8, 13, 14, 11, 10, 6, 7],  // Path 8
+            [7, 11, 10, 14, 9, 13, 8, 4, 5, 1, 2, 6]   // Path 9
         ];
         const SAMPLE_PUZZLES = {
             "CORNERSTONES": { seedWord: "CORNERSTONES", pathIndex: 0 },
-            "ARCHITECTURE": { seedWord: "ARCHITECTURE", pathIndex: 1 }
+            "ARCHITECTURE": { seedWord: "ARCHITECTURE", pathIndex: 1 },
+            "EXPERIMENTAL": { seedWord: "EXPERIMENTAL", pathIndex: 2 },
+            "TECHNOLOGIES": { seedWord: "TECHNOLOGIES", pathIndex: 3 },
+            "CHAMPIONSHIP": { seedWord: "CHAMPIONSHIP", pathIndex: 4 },
+            "INTELLIGENCE": { seedWord: "INTELLIGENCE", pathIndex: 5 },
+            "NEIGHBORHOOD": { seedWord: "NEIGHBORHOOD", pathIndex: 6 },
+            "THANKSGIVING": { seedWord: "THANKSGIVING", pathIndex: 7 },
+            "ENCYCLOPEDIA": { seedWord: "ENCYCLOPEDIA", pathIndex: 8 },
+            "BREAKTHROUGH": { seedWord: "BREAKTHROUGH", pathIndex: 9 }
         };
         const ADJACENCY = {
             1: [2, 4, 5, 6],
@@ -830,6 +988,9 @@
                     this.dfsWordSearch(startPos, '', [startPos], visited.slice());
                 });
                 
+                // Get the current puzzle's seed word
+                const currentSeedWord = SAMPLE_PUZZLES[this.currentPuzzle].seedWord;
+                
                 // Classify words as cornerstone or valid
                 this.allPossibleWords.forEach(word => {
                     const wordData = {
@@ -839,10 +1000,13 @@
                         pattern: null,
                         showLength: false,
                         showDefinition: false,
-                        definition: getDefinition(word)
+                        definition: word === currentSeedWord && SEED_WORDS[currentSeedWord] 
+                            ? SEED_WORDS[currentSeedWord].definition 
+                            : getDefinition(word)
                     };
                     
-                    if (COMMON_WORDS_SET.has(word.toLowerCase())) {
+                    // Seed word is always a cornerstone word for its puzzle
+                    if (word === currentSeedWord || COMMON_WORDS_SET.has(word.toLowerCase())) {
                         this.cornerstoneWords.push(wordData);
                     } else {
                         this.validWords.push(word);
@@ -860,7 +1024,8 @@
                     this.allPossibleWords.add(newWord.toUpperCase());
                 }
                 
-                if (newWord.length < 12) {
+                // Continue searching up to 12 letters (to find seed words)
+                if (newWord.length <= 12) {
                     const neighbors = ADJACENCY[position] || [];
                     neighbors.forEach(neighbor => {
                         if (!visited[neighbor] && this.grid[neighbor]) {
@@ -1061,6 +1226,16 @@
             closeDefinition() {
                 document.getElementById('overlay').classList.remove('show');
                 document.getElementById('definitionPopup').classList.remove('show');
+            }
+
+            showInstructions() {
+                document.getElementById('overlay').classList.add('show');
+                document.getElementById('instructionsPopup').classList.add('show');
+            }
+
+            closeInstructions() {
+                document.getElementById('overlay').classList.remove('show');
+                document.getElementById('instructionsPopup').classList.remove('show');
             }
 
             updateFoundWords() {
@@ -1451,6 +1626,13 @@
         let game;
         document.addEventListener('DOMContentLoaded', () => {
             game = new CornerstonesGame();
+            
+            // Show instructions for first-time users
+            const hasPlayedBefore = localStorage.getItem('cornerstones_played');
+            if (!hasPlayedBefore) {
+                game.showInstructions();
+                localStorage.setItem('cornerstones_played', 'true');
+            }
         });
     </script>
 </body>

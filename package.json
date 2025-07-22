@@ -1,5 +1,18 @@
 {
+  "name": "cornerstones-game",
+  "version": "1.0.0",
+  "description": "A word puzzle game where players find words in a cross-shaped grid",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:headless": "jest --testTimeout=30000"
+  },
   "dependencies": {
     "puppeteer": "^24.14.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.4"
   }
 }

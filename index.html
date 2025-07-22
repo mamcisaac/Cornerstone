@@ -6,7 +6,6 @@
     <title>Cornerstones - Daily Word Puzzle</title>
     <!-- Load word validation and definition systems -->
     <script src="words.js"></script>
-    <script src="definitions.js"></script>
     <script src="common-words.js"></script>
     <script src="common-definitions.js"></script>
     <script src="hint-system.js"></script>
@@ -925,7 +924,6 @@
                     cornerstoneWord.found = true;
                     this.foundWords.add(upperWord);
                     this.showMessage(`Cornerstone word found: "${upperWord}"!`, 'cornerstone');
-                    this.showDefinition(upperWord, true);
                     this.updateFoundWords();
                     this.updateStats();
                     this.updateCornerstoneDisplay();
@@ -935,7 +933,6 @@
                     this.foundWords.add(upperWord);
                     this.hintSystem.earnHint();
                     this.showMessage(`"${upperWord}" found! +1 hint earned`, 'success');
-                    this.showDefinition(upperWord, false);
                     this.updateFoundWords();
                     this.updateStats();
                     this.updateHintButtons();

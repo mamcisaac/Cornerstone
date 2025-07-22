@@ -1287,13 +1287,26 @@
                 this.allPossibleWords = new Set();
                 const visited = new Array(16).fill(false);
                 
+                // Debug the current grid
+                const puzzle = SAMPLE_PUZZLES[this.currentPuzzle];
+                const path = HAMILTONIAN_PATHS[puzzle.pathIndex];
+                console.log(`\n=== PUZZLE DEBUG ===`);
+                console.log(`Seed word: ${puzzle.seedWord}`);
+                console.log(`Path: [${path.join(', ')}]`);
+                console.log(`Grid layout:`);
+                console.log(`   ${this.grid[1] || '·'} ${this.grid[2] || '·'}`);
+                console.log(`${this.grid[4] || '·'} ${this.grid[5] || '·'} ${this.grid[6] || '·'} ${this.grid[7] || '·'}`);
+                console.log(`${this.grid[8] || '·'} ${this.grid[9] || '·'} ${this.grid[10] || '·'} ${this.grid[11] || '·'}`);
+                console.log(`   ${this.grid[13] || '·'} ${this.grid[14] || '·'}`);
+                console.log(`Letters along path: ${path.map(pos => this.grid[pos]).join('')}`);
+                
                 // Start DFS from each playable cell
                 CROSS_POSITIONS.forEach(startPos => {
                     this.dfsWordSearch(startPos, '', [startPos], visited.slice());
                 });
                 
                 console.log(`Found ${this.allPossibleWords.size} possible words for ${this.currentPuzzle}`);
-                console.log('Sample found words:', Array.from(this.allPossibleWords).slice(0, 20));
+                console.log('All found words:', Array.from(this.allPossibleWords).sort());
             }
 
             dfsWordSearch(position, currentWord, path, visited) {

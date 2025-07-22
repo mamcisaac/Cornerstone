@@ -214,6 +214,22 @@
             font-size: 1.1em;
         }
 
+        .word-display.success {
+            color: #4299e1;
+            font-weight: bold;
+        }
+
+        .word-display.error {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .word-display.cornerstone {
+            color: #22c55e;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
         .found-words {
             background: #f8f9fa;
             border-radius: 10px;
@@ -945,15 +961,23 @@
             }
 
             updateCurrentWord() {
+                const currentWordEl = document.getElementById('currentWord');
                 const word = this.getSelectedWord();
-                document.getElementById('currentWord').textContent = word || 'Select letters to form words';
+                
+                // Don't override messages (they have CSS classes other than 'word-display')
+                if (!currentWordEl.className.includes('success') && 
+                    !currentWordEl.className.includes('error') && 
+                    !currentWordEl.className.includes('cornerstone')) {
+                    currentWordEl.textContent = word || 'Select letters to form words';
+                    currentWordEl.className = 'word-display';
+                }
             }
 
             checkWord(word) {
                 const upperWord = word.toUpperCase();
                 
                 if (this.foundWords.has(upperWord)) {
-                    this.showMessage('Already found!', 'error');
+                    this.showMessage(`"${upperWord}" already found!`, 'error');
                     return;
                 }
                 
@@ -982,14 +1006,22 @@
             }
 
             showMessage(text, type) {
+                const currentWordEl = document.getElementById('currentWord');
                 const messageEl = document.getElementById('message');
-                messageEl.textContent = text;
-                messageEl.className = `message ${type}`;
                 
+                // Show message in the currentWord element
+                currentWordEl.textContent = text;
+                currentWordEl.className = `word-display ${type}`;
+                
+                // Also clear the old message element
+                messageEl.textContent = '';
+                messageEl.className = 'message';
+                
+                // Return to default instruction after 5 seconds
                 setTimeout(() => {
-                    messageEl.textContent = '';
-                    messageEl.className = 'message';
-                }, 3000);
+                    currentWordEl.textContent = 'Select letters to form words';
+                    currentWordEl.className = 'word-display';
+                }, 5000);
             }
 
             showDefinition(word, isCornerstone) {

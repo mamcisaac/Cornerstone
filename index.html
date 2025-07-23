@@ -100,15 +100,15 @@
         .game-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+            gap: 12px;
             max-width: 320px;
             margin: 0 auto 30px auto;
             padding: 20px;
         }
 
         .cell {
-            width: 70px;
-            height: 70px;
+            width: 65px;
+            height: 65px;
             border: 3px solid #ddd;
             border-radius: 12px;
             display: flex;
@@ -120,6 +120,7 @@
             transition: all 0.2s ease;
             user-select: none;
             background: white;
+            position: relative;
         }
 
         .cell:hover {
@@ -362,34 +363,44 @@
             font-family: 'Courier New', monospace;
             font-weight: bold;
             font-size: 14px;
+            box-sizing: border-box;
+            border: 2px solid transparent; /* Default transparent border to match revealed letters */
         }
 
         .clickable-letter {
             cursor: pointer;
-            background: #4a90e2;
-            color: white;
-            border: 2px solid #357abd;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: all 0.2s ease;
+            background: transparent;
+            color: #333;
+            border: 2px solid transparent;
+            transition: all 0.2s;
         }
 
         .clickable-letter:hover {
-            background: #357abd;
-            transform: translateY(-1px);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+            background: #e6f3ff;
+            transform: translateX(3px);
         }
 
         .clickable-letter:active {
-            transform: translateY(0);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            background: #d1e9ff;
+            transform: translateX(1px);
         }
 
         .revealed-letter {
             color: #666;
-            font-weight: bold;
             background: #f8f8f8;
             border: 2px solid #ddd;
+            /* Removed font-weight: bold to prevent width inconsistency */
+            /* .letter-position already has font-weight: bold */
         }
+        
+        /* Compact letter selection - maintains visual consistency */
+        .letter-selection-word {
+            background: #f0f8ff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 2px solid #667eea;
+        }
+        
 
         .hint-section {
             background: #f8f9fa;
@@ -587,6 +598,48 @@
             cursor: not-allowed;
             opacity: 0.6;
         }
+        
+        .input-mode-toggle {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .mode-button {
+            flex: 1;
+            padding: 10px 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .mode-button span {
+            display: block;
+        }
+        
+        .mode-button .mode-description {
+            font-size: 0.75em;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        .mode-button:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .mode-button.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        
+        .mode-button.active .mode-description {
+            color: #e6eeff;
+        }
 
         .hint-option-cost {
             float: right;
@@ -604,6 +657,31 @@
         .cornerstone-word.clickable-hint:hover {
             background: #e6f3ff;
             transform: translateX(5px);
+        }
+        
+        .clickable-letter-global {
+            cursor: pointer;
+            padding: 2px 4px;
+            margin: 0 1px;
+            border-radius: 3px;
+            transition: all 0.2s;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+        
+        .clickable-letter-global:hover {
+            background: #e6f3ff;
+            transform: translateY(-2px);
+            border: 1px solid #667eea;
+        }
+        
+        .revealed-letter-global {
+            padding: 2px 4px;
+            margin: 0 1px;
+            border-radius: 3px;
+            background: #f8f8f8;
+            color: #666;
+            border: 1px solid #ddd;
         }
 
         .help-button {
@@ -936,6 +1014,21 @@
             </ul>
         </div>
 
+        <div class="section">
+            <h3>Input Mode</h3>
+            <p>Choose how you want to select letters:</p>
+            <div class="input-mode-toggle">
+                <button class="mode-button active" id="dragModeBtn" onclick="game.setInputMode('drag')">
+                    <span>Drag</span>
+                    <span class="mode-description">Click & drag to select</span>
+                </button>
+                <button class="mode-button" id="tapModeBtn" onclick="game.setInputMode('tap')">
+                    <span>Tap</span>
+                    <span class="mode-description">Tap cells one by one</span>
+                </button>
+            </div>
+        </div>
+
         <button class="close-instructions" onclick="game.closeInstructions()">Got it!</button>
     </div>
 
@@ -1023,9 +1116,84 @@
                 this.cancelHandler = null;
                 this.selectedHintWord = null;
                 this.hintMenuHandler = null;
+                this.isDragging = false;
+                this.touchStartTime = 0;
+                this.inputMode = 'drag'; // 'drag' or 'tap'
                 
                 this.initializeGame();
                 this.setupEventListeners();
+                this.loadInputModePreference();
+            }
+            
+            setInputMode(mode) {
+                if (this.inputMode === mode) return;
+                
+                this.inputMode = mode;
+                this.saveInputModePreference();
+                this.updateModeButtons();
+                this.updateGlobalEventListeners();
+                this.recreateGridEventListeners();
+                
+                // Clear any existing selection when switching modes
+                if (this.selectedPath.length > 0) {
+                    this.clearSelection();
+                }
+                
+                // Update instructions to reflect new mode
+                this.updateCurrentWord();
+            }
+            
+            updateModeButtons() {
+                const dragBtn = document.getElementById('dragModeBtn');
+                const tapBtn = document.getElementById('tapModeBtn');
+                
+                if (this.inputMode === 'drag') {
+                    dragBtn.classList.add('active');
+                    tapBtn.classList.remove('active');
+                } else {
+                    dragBtn.classList.remove('active');
+                    tapBtn.classList.add('active');
+                }
+            }
+            
+            saveInputModePreference() {
+                localStorage.setItem('cornerstones_input_mode', this.inputMode);
+            }
+            
+            loadInputModePreference() {
+                const savedMode = localStorage.getItem('cornerstones_input_mode');
+                if (savedMode && ['drag', 'tap'].includes(savedMode)) {
+                    this.inputMode = savedMode;
+                }
+                this.updateModeButtons();
+            }
+            
+            addCellEventListeners(cell) {
+                if (this.inputMode === 'drag') {
+                    // Drag mode: use mousedown/mouseenter/mouseup for desktop
+                    cell.addEventListener('mousedown', (e) => this.startSelection(e));
+                    cell.addEventListener('mouseenter', (e) => this.continueSelection(e));
+                    cell.addEventListener('mouseup', (e) => this.endSelection(e));
+                } else {
+                    // Tap mode: use click events only
+                    cell.addEventListener('click', (e) => this.handleCellClick(e));
+                }
+                
+                // Touch events for mobile (both modes)
+                cell.addEventListener('touchstart', (e) => this.handleTouchStart(e));
+                cell.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+                cell.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+            }
+            
+            recreateGridEventListeners() {
+                // Remove all existing event listeners and re-add based on current mode
+                const cells = document.querySelectorAll('.cell:not(.empty)');
+                cells.forEach(cell => {
+                    // Clone node to remove all event listeners
+                    const newCell = cell.cloneNode(true);
+                    cell.parentNode.replaceChild(newCell, cell);
+                    this.addCellEventListeners(newCell);
+                });
             }
 
             async initializeGame() {
@@ -1050,12 +1218,7 @@
                     if ([0, 3, 12, 15].includes(i)) {
                         cell.classList.add('empty');
                     } else {
-                        cell.addEventListener('mousedown', (e) => this.startSelection(e));
-                        cell.addEventListener('mouseenter', (e) => this.continueSelection(e));
-                        cell.addEventListener('mouseup', (e) => this.endSelection(e));
-                        cell.addEventListener('touchstart', (e) => this.startSelection(e));
-                        cell.addEventListener('touchmove', (e) => this.handleTouchMove(e));
-                        cell.addEventListener('touchend', (e) => this.endSelection(e));
+                        this.addCellEventListeners(cell);
                     }
                     
                     gridElement.appendChild(cell);
@@ -1144,20 +1307,104 @@
             }
 
             setupEventListeners() {
-                document.addEventListener('mouseup', () => this.endSelection());
-                document.addEventListener('touchend', () => this.endSelection());
+                // Only add global mouseup in drag mode
+                this.globalMouseUpHandler = () => this.endSelection();
+                
                 document.getElementById('overlay').addEventListener('click', () => this.closeDefinition());
                 document.addEventListener('contextmenu', (e) => e.preventDefault());
+                
+                // Handle clicks outside grid cells to submit word (tap mode only)
+                this.globalClickHandler = (e) => {
+                    if (this.inputMode === 'tap' && !e.target.closest('#gameGrid') && this.selectedPath.length > 0) {
+                        this.submitCurrentWord();
+                    }
+                };
+                document.addEventListener('click', this.globalClickHandler);
+                
+                // Set up mode-specific global listeners
+                this.updateGlobalEventListeners();
+            }
+            
+            updateGlobalEventListeners() {
+                // Remove existing listeners
+                document.removeEventListener('mouseup', this.globalMouseUpHandler);
+                
+                // Add listeners based on current mode
+                if (this.inputMode === 'drag') {
+                    document.addEventListener('mouseup', this.globalMouseUpHandler);
+                }
             }
 
+            handleTouchStart(e) {
+                e.preventDefault();
+                this.touchStartTime = Date.now();
+                this.isDragging = false;
+                // Don't start selection here - wait to see if it's a tap or drag
+            }
+            
             handleTouchMove(e) {
-                if (!this.isSelecting) return;
                 e.preventDefault();
                 
+                // Start drag selection on first move
+                if (!this.isDragging) {
+                    this.isDragging = true;
+                    const startElement = e.target;
+                    if (startElement && startElement.classList.contains('cell')) {
+                        this.startSelection({ target: startElement, preventDefault: () => {} });
+                    }
+                }
+                
+                // Continue selection
                 const touch = e.touches[0];
                 const element = document.elementFromPoint(touch.clientX, touch.clientY);
                 if (element && element.classList.contains('cell')) {
                     this.continueSelection({ target: element });
+                }
+            }
+            
+            handleTouchEnd(e) {
+                e.preventDefault();
+                
+                // Only end selection if it was a drag
+                if (this.isDragging) {
+                    this.endSelection(e);
+                }
+                // For taps, don't end selection - let the click handler manage it
+            }
+            
+            handleCellClick(e) {
+                // Only handle in tap mode
+                if (this.inputMode !== 'tap') return;
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const index = parseInt(e.target.dataset.index);
+                
+                // If we have a selection in progress
+                if (this.selectedPath.length > 0) {
+                    const lastIndex = this.selectedPath[this.selectedPath.length - 1];
+                    
+                    // Check if clicked cell is adjacent to last selected
+                    if (this.isAdjacent(lastIndex, index) && !this.selectedPath.includes(index)) {
+                        // Add to path
+                        this.addToPath(index);
+                    } else {
+                        // Not adjacent or already in path - submit current word
+                        this.submitCurrentWord();
+                        
+                        // Start new selection if clicked on a valid cell
+                        if (!e.target.classList.contains('empty')) {
+                            this.selectedPath = [];
+                            this.addToPath(index);
+                        }
+                    }
+                } else {
+                    // No selection - start new one
+                    if (!e.target.classList.contains('empty')) {
+                        this.selectedPath = [];
+                        this.addToPath(index);
+                    }
                 }
             }
 
@@ -1170,7 +1417,13 @@
             }
 
             continueSelection(e) {
+                // Only continue on mouseenter if we're actively dragging (mouse button down)
+                if (e.type === 'mouseenter' && !e.buttons) {
+                    return;
+                }
+                
                 if (!this.isSelecting) return;
+                
                 const index = parseInt(e.target.dataset.index);
                 this.addToPath(index);
             }
@@ -1178,7 +1431,10 @@
             endSelection(e) {
                 if (!this.isSelecting) return;
                 this.isSelecting = false;
-                
+                this.submitCurrentWord();
+            }
+            
+            submitCurrentWord() {
                 const word = this.getSelectedWord();
                 
                 // Clear selection first, before showing messages
@@ -1241,14 +1497,8 @@
                     cell.classList.remove('selected', 'in-path');
                 });
                 
-                const currentWordEl = document.getElementById('currentWord');
-                // Don't override messages (they have CSS classes other than 'word-display')
-                if (!currentWordEl.className.includes('success') && 
-                    !currentWordEl.className.includes('error') && 
-                    !currentWordEl.className.includes('cornerstone')) {
-                    currentWordEl.textContent = '';
-                    currentWordEl.className = 'word-display';
-                }
+                // Update current word display after clearing selection
+                this.updateCurrentWord();
             }
 
             getSelectedWord() {
@@ -1263,7 +1513,21 @@
                 if (!currentWordEl.className.includes('success') && 
                     !currentWordEl.className.includes('error') && 
                     !currentWordEl.className.includes('cornerstone')) {
-                    currentWordEl.textContent = word || '';
+                    
+                    if (word && word.length > 0) {
+                        // Show the selected letters in both modes
+                        currentWordEl.textContent = word;
+                    } else if (this.letterSelectionWord) {
+                        // In letter selection mode - show specific instructions
+                        currentWordEl.textContent = 'Click on a letter position to reveal it!';
+                    } else {
+                        // Show mode-specific instructions when no word is selected
+                        if (this.inputMode === 'tap') {
+                            currentWordEl.textContent = 'Tap cells to form words';
+                        } else {
+                            currentWordEl.textContent = 'Drag to form words';
+                        }
+                    }
                     currentWordEl.className = 'word-display';
                 }
             }
@@ -1294,6 +1558,7 @@
                     this.updateFoundWords();
                     this.updateStats();
                     this.updateHintButtons();
+                    this.updateCornerstoneDisplay(); // Update to make words clickable now that we have hints
                     this.saveProgress();
                 } else {
                     this.showMessage('Not a valid word', 'error');
@@ -1312,10 +1577,11 @@
                 messageEl.textContent = '';
                 messageEl.className = 'message';
                 
-                // Clear message after 5 seconds but don't restore default text
+                // Clear message after 5 seconds and restore appropriate display
                 setTimeout(() => {
-                    currentWordEl.textContent = '';
+                    // Reset the class to allow updateCurrentWord to work
                     currentWordEl.className = 'word-display';
+                    this.updateCurrentWord();
                 }, 5000);
             }
 
@@ -1408,17 +1674,23 @@
                     let content = '<div>';
                     if (wordData.found) {
                         content += `<span class="cornerstone-word-text">${wordData.word}</span>`;
-                    } else if (this.letterSelectionWord === wordData) {
-                        // In letter selection mode - show clickable letter positions
-                        content += '<span class="cornerstone-word-text letter-selection">';
+                    } else if (this.globalLetterRevealMode) {
+                        // In global letter reveal mode - create individual clickable letter spans
+                        content += '<span class="cornerstone-word-text">';
                         for (let i = 0; i < wordData.word.length; i++) {
                             const letter = wordData.revealed && wordData.revealed[i] ? wordData.word[i] : '_';
                             const isClickable = !wordData.revealed || !wordData.revealed[i];
-                            const clickableClass = isClickable ? 'clickable-letter' : 'revealed-letter';
-                            content += `<span class="letter-position ${clickableClass}" data-word-index="${index}" data-letter-index="${i}">${letter}</span>`;
+                            const letterClass = isClickable ? 'clickable-letter-global' : 'revealed-letter-global';
+                            content += `<span class="${letterClass}" data-word-index="${index}" data-letter-index="${i}">${letter}</span>`;
                             if (i < wordData.word.length - 1) content += ' ';
                         }
                         content += '</span>';
+                    } else if (this.letterSelectionWord === wordData) {
+                        // In letter selection mode - maintain compact format like other words
+                        const pattern = wordData.word.split('').map((letter, i) => {
+                            return wordData.revealed && wordData.revealed[i] ? letter : '_';
+                        }).join(' ');
+                        content += `<span class="cornerstone-word-text" data-word-index="${index}">${pattern}</span>`;
                     } else if (wordData.pattern) {
                         content += `<span class="cornerstone-word-text">${wordData.pattern}</span>`;
                     } else {
@@ -1439,28 +1711,29 @@
                     
                     if (wordData.found) {
                         wordEl.onclick = () => this.showDefinition(wordData.word, true);
+                    } else if (this.globalLetterRevealMode) {
+                        // In global letter reveal mode, words are not clickable - only individual letters are
+                        // Click handling for letters is done in the event delegation below
                     } else if (this.revealLetterMode) {
                         // In reveal letter mode, unfound words are clickable
-                        wordEl.style.cursor = 'pointer';
-                        wordEl.style.backgroundColor = '#f0f8ff';
+                        wordEl.classList.add('clickable-hint');
                         wordEl.onclick = () => this.enterLetterSelection(wordData);
                     } else if (this.letterSelectionWord) {
-                        // In letter selection mode - other words can be clicked to switch
+                        // In letter selection mode
                         if (this.letterSelectionWord === wordData) {
-                            // This is the currently selected word - show clickable letters
-                            wordEl.style.border = '2px solid #667eea';
+                            // This is the currently selected word - make it clickable for letter selection
+                            wordEl.classList.add('clickable-hint');
+                            // Add a subtle visual indicator that this is the selected word
+                            wordEl.style.background = '#f0f8ff';
                         } else if (!wordData.found) {
                             // Other unfound words are clickable to switch selection
-                            wordEl.style.cursor = 'pointer';
-                            wordEl.style.backgroundColor = '#f8f8f8';
-                            wordEl.style.border = '1px dashed #ccc';
+                            wordEl.classList.add('clickable-hint');
                             wordEl.onclick = () => this.switchLetterSelection(wordData);
                         }
                     } else if (this.definitionRevealMode) {
                         // In definition reveal mode, unfound words without definitions are clickable
                         if (!wordData.found && !wordData.showDefinition) {
-                            wordEl.style.cursor = 'pointer';
-                            wordEl.style.backgroundColor = '#f0f8ff';
+                            wordEl.classList.add('clickable-hint');
                             wordEl.onclick = () => this.revealDefinitionForWord(wordData);
                         }
                     } else {
@@ -1475,15 +1748,53 @@
                     listEl.appendChild(wordEl);
                 });
 
-                // Add event delegation for clickable letters
-                const clickableLetters = listEl.querySelectorAll('.clickable-letter');
-                clickableLetters.forEach(letterEl => {
-                    letterEl.onclick = (e) => {
-                        e.stopPropagation(); // Prevent word click
-                        const letterIndex = parseInt(letterEl.dataset.letterIndex);
-                        this.revealLetterAtPosition(this.letterSelectionWord, letterIndex);
-                    };
-                });
+                // Add event delegation for global letter reveal mode
+                if (this.globalLetterRevealMode) {
+                    const clickableLetters = listEl.querySelectorAll('.clickable-letter-global');
+                    clickableLetters.forEach(letterEl => {
+                        letterEl.onclick = (e) => {
+                            e.stopPropagation(); // Prevent word click
+                            const wordIndex = parseInt(letterEl.dataset.wordIndex);
+                            const letterIndex = parseInt(letterEl.dataset.letterIndex);
+                            const wordData = displayWords[wordIndex];
+                            this.revealLetterAtPosition(wordData, letterIndex);
+                        };
+                    });
+                }
+                
+                // Add event delegation for the currently selected word in letter selection mode
+                if (this.letterSelectionWord) {
+                    const selectedWordElement = Array.from(listEl.querySelectorAll('.cornerstone-word')).find(wordEl => {
+                        const wordText = wordEl.querySelector('.cornerstone-word-text');
+                        return wordText && wordText.hasAttribute('data-word-index');
+                    });
+                    
+                    if (selectedWordElement) {
+                        const wordText = selectedWordElement.querySelector('.cornerstone-word-text');
+                        wordText.onclick = (e) => {
+                            e.stopPropagation(); // Prevent word click
+                            
+                            // Calculate which letter position was clicked
+                            const rect = wordText.getBoundingClientRect();
+                            const clickX = e.clientX - rect.left;
+                            const letterCount = this.letterSelectionWord.word.length;
+                            
+                            // Estimate letter position based on click position
+                            const letterWidth = rect.width / letterCount;
+                            const letterIndex = Math.floor(clickX / letterWidth);
+                            
+                            // Ensure valid range
+                            const validIndex = Math.max(0, Math.min(letterIndex, letterCount - 1));
+                            
+                            // Only allow clicking on unrevealed letters
+                            if (!this.letterSelectionWord.revealed || !this.letterSelectionWord.revealed[validIndex]) {
+                                this.revealLetterAtPosition(this.letterSelectionWord, validIndex);
+                            } else {
+                                this.showMessage('That letter is already revealed!', 'error');
+                            }
+                        };
+                    }
+                }
             }
 
             updateHintButtons() {
@@ -1567,15 +1878,18 @@
                 // Add click handler to cancel letter selection when clicking elsewhere
                 if (!this.cancelHandler) {
                     this.cancelHandler = (e) => {
-                        // Don't cancel if clicking on cornerstone words, letters, or hint buttons
+                        // Don't cancel if clicking on cornerstone words, hint buttons, or hint menu
                         if (!e.target.closest('.cornerstone-word') && 
-                            !e.target.closest('.clickable-letter') &&
-                            !e.target.closest('.hint-button')) {
+                            !e.target.closest('.hint-button') &&
+                            !e.target.closest('#hintOptionsMenu')) {
                             this.cancelLetterSelection();
                         }
                     };
                 }
-                document.addEventListener('click', this.cancelHandler);
+                // Delay adding the handler to avoid immediate triggering
+                setTimeout(() => {
+                    document.addEventListener('click', this.cancelHandler);
+                }, 100);
             }
 
             removeCancelHandler() {
@@ -1585,18 +1899,22 @@
             }
 
             cancelLetterSelection() {
+                const wasDefinitionMode = this.definitionRevealMode;
+                const wasGlobalLetterMode = this.globalLetterRevealMode;
                 this.letterSelectionWord = null;
                 this.revealLetterMode = false;
                 this.definitionRevealMode = false;
-                const message = this.definitionRevealMode ? 'Definition reveal cancelled' : 'Letter reveal cancelled';
+                this.globalLetterRevealMode = false;
+                const message = wasDefinitionMode ? 'Definition reveal cancelled' : 'Letter reveal cancelled';
                 this.showMessage(message, 'error');
                 this.updateCornerstoneDisplay();
                 this.removeCancelHandler();
             }
 
             revealLetterAtPosition(wordData, letterIndex) {
-                // Exit letter selection mode
+                // Exit letter selection modes
                 this.letterSelectionWord = null;
+                this.globalLetterRevealMode = false;
                 this.removeCancelHandler();
                 
                 // Use hints
@@ -1733,6 +2051,18 @@
                 // Show the menu first to get accurate dimensions
                 menu.classList.add('show');
                 
+                // Disable definition button if definition is already shown
+                const definitionBtn = document.getElementById('hintRevealDefinitionOption');
+                if (wordData.showDefinition) {
+                    definitionBtn.disabled = true;
+                    definitionBtn.style.opacity = '0.5';
+                    definitionBtn.style.cursor = 'not-allowed';
+                } else {
+                    definitionBtn.disabled = false;
+                    definitionBtn.style.opacity = '1';
+                    definitionBtn.style.cursor = 'pointer';
+                }
+                
                 // Position the menu near the clicked word
                 menu.style.left = rect.left + 'px';
                 menu.style.top = (rect.bottom + 10) + 'px';
@@ -1794,23 +2124,18 @@
                 }
                 
                 if (optionType === 'letter') {
-                    // Don't set revealLetterMode here, let enterLetterSelection handle it
-                    // Just go directly to letter selection for this word
-                    this.letterSelectionWord = wordData;
+                    // Enter global letter reveal mode - all letters in all words become clickable
+                    this.globalLetterRevealMode = true;
+                    this.letterSelectionWord = null; // Clear any specific word selection
                     
-                    // Initialize revealed array if needed
-                    if (!wordData.revealed) {
-                        wordData.revealed = new Array(wordData.word.length).fill(false);
-                    }
+                    // Initialize revealed arrays for all words if needed
+                    this.cornerstoneWords.forEach(word => {
+                        if (!word.found && !word.revealed) {
+                            word.revealed = new Array(word.word.length).fill(false);
+                        }
+                    });
                     
-                    // Check if all letters are already revealed
-                    if (wordData.revealed.every(revealed => revealed)) {
-                        this.showMessage('All letters in that word are already revealed!', 'error');
-                        this.updateCornerstoneDisplay();
-                        return;
-                    }
-                    
-                    this.showMessage('Click on a letter position to reveal it!', 'success');
+                    this.showMessage('Click on any letter position in any word to reveal it!', 'success');
                     this.updateCornerstoneDisplay();
                     this.addCancelHandler();
                 } else if (optionType === 'definition') {

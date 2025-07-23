@@ -754,47 +754,6 @@
             opacity: 0.6;
         }
         
-        .input-mode-toggle {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        
-        .mode-button {
-            flex: 1;
-            padding: 10px 8px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        
-        .mode-button span {
-            display: block;
-        }
-        
-        .mode-button .mode-description {
-            font-size: 0.75em;
-            color: #666;
-            margin-top: 2px;
-        }
-        
-        .mode-button:hover {
-            border-color: #667eea;
-            background: #f0f4ff;
-        }
-        
-        .mode-button.active {
-            border-color: #667eea;
-            background: #667eea;
-            color: white;
-        }
-        
-        .mode-button.active .mode-description {
-            color: #e6eeff;
-        }
 
         .hint-option-cost {
             float: right;
@@ -1226,18 +1185,12 @@
         </div>
 
         <div class="section">
-            <h3>Input Mode</h3>
-            <p>Choose how you want to select letters:</p>
-            <div class="input-mode-toggle">
-                <button class="mode-button active" id="dragModeBtn" onclick="game.setInputMode('drag')">
-                    <span>Drag</span>
-                    <span class="mode-description">Click & drag to select</span>
-                </button>
-                <button class="mode-button" id="tapModeBtn" onclick="game.setInputMode('tap')">
-                    <span>Tap</span>
-                    <span class="mode-description">Tap cells one by one</span>
-                </button>
-            </div>
+            <h3>Controls</h3>
+            <p>Two ways to form words:</p>
+            <ul>
+                <li><strong>Mouse:</strong> Click and drag to select letters</li>
+                <li><strong>Keyboard:</strong> Use arrow keys to navigate, Space to add letters, Enter to submit</li>
+            </ul>
         </div>
 
         <button class="close-instructions" onclick="game.closeInstructions()">Got it!</button>
@@ -1329,75 +1282,31 @@
                 this.hintMenuHandler = null;
                 this.isDragging = false;
                 this.touchStartTime = 0;
-                this.inputMode = 'drag'; // 'drag' or 'tap'
                 
                 this.initializeGame();
                 this.setupEventListeners();
-                this.loadInputModePreference();
+                this.cleanupOldPreferences();
             }
-            
-            setInputMode(mode) {
-                if (this.inputMode === mode) return;
-                
-                this.inputMode = mode;
-                this.saveInputModePreference();
-                this.updateModeButtons();
-                this.updateGlobalEventListeners();
-                this.recreateGridEventListeners();
-                
-                // Clear any existing selection when switching modes
-                if (this.selectedPath.length > 0) {
-                    this.clearSelection();
-                }
-                
-                // Update instructions to reflect new mode
-                this.updateCurrentWord();
-            }
-            
-            updateModeButtons() {
-                const dragBtn = document.getElementById('dragModeBtn');
-                const tapBtn = document.getElementById('tapModeBtn');
-                
-                if (this.inputMode === 'drag') {
-                    dragBtn.classList.add('active');
-                    tapBtn.classList.remove('active');
-                } else {
-                    dragBtn.classList.remove('active');
-                    tapBtn.classList.add('active');
-                }
-            }
-            
-            saveInputModePreference() {
-                localStorage.setItem('cornerstones_input_mode', this.inputMode);
-            }
-            
-            loadInputModePreference() {
-                const savedMode = localStorage.getItem('cornerstones_input_mode');
-                if (savedMode && ['drag', 'tap'].includes(savedMode)) {
-                    this.inputMode = savedMode;
-                }
-                this.updateModeButtons();
+
+            cleanupOldPreferences() {
+                // Remove old tap mode preferences that are no longer used
+                localStorage.removeItem('cornerstones_input_mode');
             }
             
             addCellEventListeners(cell) {
-                if (this.inputMode === 'drag') {
-                    // Drag mode: use mousedown/mouseenter/mouseup for desktop
-                    cell.addEventListener('mousedown', (e) => this.startSelection(e));
-                    cell.addEventListener('mouseenter', (e) => this.continueSelection(e));
-                    cell.addEventListener('mouseup', (e) => this.endSelection(e));
-                } else {
-                    // Tap mode: use click events only
-                    cell.addEventListener('click', (e) => this.handleCellClick(e));
-                }
+                // Mouse events for desktop drag interaction
+                cell.addEventListener('mousedown', (e) => this.startSelection(e));
+                cell.addEventListener('mouseenter', (e) => this.continueSelection(e));
+                cell.addEventListener('mouseup', (e) => this.endSelection(e));
                 
-                // Touch events for mobile (both modes)
+                // Touch events for mobile
                 cell.addEventListener('touchstart', (e) => this.handleTouchStart(e));
                 cell.addEventListener('touchmove', (e) => this.handleTouchMove(e));
                 cell.addEventListener('touchend', (e) => this.handleTouchEnd(e));
             }
             
             recreateGridEventListeners() {
-                // Remove all existing event listeners and re-add based on current mode
+                // Remove all existing event listeners and re-add
                 const cells = document.querySelectorAll('.cell:not(.empty)');
                 cells.forEach(cell => {
                     // Clone node to remove all event listeners
@@ -1533,25 +1442,15 @@
             }
 
             setupEventListeners() {
-                // Only add global mouseup in drag mode
+                // Global mouseup for ending drag selections
                 this.globalMouseUpHandler = () => this.endSelection();
+                document.addEventListener('mouseup', this.globalMouseUpHandler);
                 
                 document.getElementById('overlay').addEventListener('click', () => this.closeDefinition());
                 document.addEventListener('contextmenu', (e) => e.preventDefault());
                 
-                // Handle clicks outside grid cells to submit word (tap mode only)
-                this.globalClickHandler = (e) => {
-                    if (this.inputMode === 'tap' && !e.target.closest('#gameGrid') && this.selectedPath.length > 0) {
-                        this.submitCurrentWord();
-                    }
-                };
-                document.addEventListener('click', this.globalClickHandler);
-                
                 // Add keyboard navigation support
                 document.addEventListener('keydown', (e) => this.handleKeyDown(e));
-                
-                // Set up mode-specific global listeners
-                this.updateGlobalEventListeners();
             }
 
             handleKeyDown(e) {
@@ -1612,15 +1511,6 @@
                 }
             }
             
-            updateGlobalEventListeners() {
-                // Remove existing listeners
-                document.removeEventListener('mouseup', this.globalMouseUpHandler);
-                
-                // Add listeners based on current mode
-                if (this.inputMode === 'drag') {
-                    document.addEventListener('mouseup', this.globalMouseUpHandler);
-                }
-            }
 
             handleTouchStart(e) {
                 e.preventDefault();
@@ -1659,41 +1549,6 @@
                 // For taps, don't end selection - let the click handler manage it
             }
             
-            handleCellClick(e) {
-                // Only handle in tap mode
-                if (this.inputMode !== 'tap') return;
-                
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const index = parseInt(e.target.dataset.index);
-                
-                // If we have a selection in progress
-                if (this.selectedPath.length > 0) {
-                    const lastIndex = this.selectedPath[this.selectedPath.length - 1];
-                    
-                    // Check if clicked cell is adjacent to last selected
-                    if (this.isAdjacent(lastIndex, index) && !this.selectedPath.includes(index)) {
-                        // Add to path
-                        this.addToPath(index);
-                    } else {
-                        // Not adjacent or already in path - submit current word
-                        this.submitCurrentWord();
-                        
-                        // Start new selection if clicked on a valid cell
-                        if (!e.target.classList.contains('empty')) {
-                            this.selectedPath = [];
-                            this.addToPath(index);
-                        }
-                    }
-                } else {
-                    // No selection - start new one
-                    if (!e.target.classList.contains('empty')) {
-                        this.selectedPath = [];
-                        this.addToPath(index);
-                    }
-                }
-            }
 
             startSelection(e) {
                 e.preventDefault();
@@ -1808,12 +1663,8 @@
                         // In letter selection mode - show specific instructions
                         currentWordEl.textContent = 'Click on a letter position to reveal it!';
                     } else {
-                        // Show mode-specific instructions when no word is selected
-                        if (this.inputMode === 'tap') {
-                            currentWordEl.textContent = 'Tap cells to form words';
-                        } else {
-                            currentWordEl.textContent = 'Drag to form words';
-                        }
+                        // Show default instructions when no word is selected
+                        currentWordEl.textContent = 'Select letters to form words';
                     }
                     currentWordEl.className = 'word-display';
                 }

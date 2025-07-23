@@ -1,8 +1,9 @@
 // Hint system for Cornerstones game
+import { GAME_CONFIG } from './config.js';
 
 export class HintSystem {
     constructor() {
-        this.availableHints = 3; // Start with 3 hints
+        this.availableHints = GAME_CONFIG.INITIAL_HINTS;
         this.usedHintTypes = new Set();
     }
 
@@ -61,27 +62,6 @@ export class HintSystem {
         };
     }
 
-    // Reveal a complete unfound cornerstone word
-    revealWord(cornerstoneWords) {
-        const cost = 1;
-        if (!this.useHints(cost)) return null;
-
-        // Find unfound words
-        const unfoundWords = cornerstoneWords.filter(w => !w.found);
-        if (unfoundWords.length === 0) return null;
-
-        // Pick a random unfound word
-        const targetWord = unfoundWords[Math.floor(Math.random() * unfoundWords.length)];
-        
-        // Mark as found
-        targetWord.found = true;
-        
-        return {
-            word: targetWord.word,
-            index: cornerstoneWords.indexOf(targetWord)
-        };
-    }
-
     // Show lengths of all cornerstone words
     showWordLengths(cornerstoneWords) {
         const baseCost = 3;
@@ -90,17 +70,15 @@ export class HintSystem {
         if (!this.useHints(cost)) return false;
         
         this.usedHintTypes.add('lengths');
-        cornerstoneWords.forEach(w => {
-            if (!w.found) {
-                w.showLength = true;
-            }
-        });
+        cornerstoneWords
+            .filter(w => !w.found)
+            .forEach(w => w.showLength = true);
         
         return true;
     }
 
     // Sort cornerstone words alphabetically
-    sortAlphabetically(cornerstoneWords) {
+    sortAlphabetically() {
         const cost = 3;
         
         if (!this.useHints(cost)) return false;
@@ -117,9 +95,7 @@ export class HintSystem {
         if (!this.useHints(cost)) return false;
         
         this.usedHintTypes.add('definitions');
-        cornerstoneWords.forEach(w => {
-            w.showDefinition = true;
-        });
+        cornerstoneWords.forEach(w => w.showDefinition = true);
         
         return true;
     }
@@ -128,7 +104,7 @@ export class HintSystem {
     getHintCosts(cornerstoneCount) {
         return {
             revealLetter: 1,
-            revealWord: 1,
+            showDefinition: 1,
             showLengths: Math.min(5, 3 + Math.floor(cornerstoneCount / 10)),
             sortAlphabetically: 3,
             revealDefinitions: Math.min(12, 8 + Math.floor(cornerstoneCount / 10))
@@ -146,14 +122,14 @@ export class HintSystem {
     // Load hint state
     loadState(state) {
         if (state) {
-            this.availableHints = state.availableHints || 3;
+            this.availableHints = state.availableHints || GAME_CONFIG.INITIAL_HINTS;
             this.usedHintTypes = new Set(state.usedHintTypes || []);
         }
     }
 
     // Reset hint system for new game
     reset() {
-        this.availableHints = 3;
+        this.availableHints = GAME_CONFIG.INITIAL_HINTS;
         this.usedHintTypes.clear();
     }
 }

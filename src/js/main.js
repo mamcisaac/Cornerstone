@@ -1,5 +1,7 @@
 // Main initialization script for Cornerstones game
 import { CornerstonesGame } from './game.js';
+import { GAME_CONFIG } from './config.js';
+import { logger } from './logger.js';
 
 // Initialize the game when page loads
 let game;
@@ -18,13 +20,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.showInstructions();
                 }
                 localStorage.setItem('cornerstones_played', 'true');
-            }, 1000);
+            }, GAME_CONFIG.INSTRUCTION_DELAY);
         }
         
-        console.log('✅ Cornerstones game initialized successfully');
+        logger.success('Cornerstones game initialized successfully');
+        
+        // Setup event listeners to replace onclick handlers
+        setupEventListeners();
         
     } catch (error) {
-        console.error('❌ Failed to initialize Cornerstones game:', error);
+        logger.error('Failed to initialize Cornerstones game:', error);
         
         // Show error message to user
         const errorEl = document.createElement('div');
@@ -43,11 +48,105 @@ document.addEventListener('DOMContentLoaded', () => {
         errorEl.innerHTML = `
             <h3>Game Failed to Load</h3>
             <p>Please refresh the page or check the browser console for details.</p>
-            <button onclick="location.reload()" style="margin-top: 10px; padding: 5px 15px;">Refresh Page</button>
+            <button id="refresh-page-btn" style="margin-top: 10px; padding: 5px 15px;">Refresh Page</button>
         `;
         document.body.appendChild(errorEl);
+        
+        // Add event listener for refresh button
+        const refreshBtn = document.getElementById('refresh-page-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => location.reload());
+        }
     }
 });
+
+// Setup event listeners to replace onclick handlers
+function setupEventListeners() {
+    // Use delegation for hint buttons that might be in hidden tabs
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'reveal-letter-btn') {
+            e.preventDefault();
+            if (window.game && typeof window.game.revealLetter === 'function') {
+                window.game.revealLetter();  
+            }
+        } else if (e.target.id === 'show-definition-btn') {
+            e.preventDefault();
+            if (window.game && typeof window.game.startDefinitionRevealMode === 'function') {
+                window.game.startDefinitionRevealMode();
+            }
+        }
+    });
+    
+    // Continue with other event listeners...
+    // Tab switching
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const tabName = e.target.getAttribute('data-tab');
+            if (window.switchTab) {
+                window.switchTab(tabName, e.target);
+            }
+        });
+    });
+
+    // Help button
+    const helpButton = document.getElementById('help-button');
+    if (helpButton) {
+        helpButton.addEventListener('click', () => {
+            if (window.showInstructions) {
+                window.showInstructions();
+            }
+        });
+    }
+
+    // Switch puzzle button
+    const switchPuzzleBtn = document.getElementById('switch-puzzle-btn');
+    if (switchPuzzleBtn) {
+        switchPuzzleBtn.addEventListener('click', () => {
+            if (window.game) {
+                window.game.switchPuzzle();
+            }
+        });
+    }
+
+    // Hint buttons handled by delegation above
+
+    // Overlay and close buttons
+    const overlay = document.getElementById('overlay');
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            if (window.hideDefinition) {
+                window.hideDefinition();
+            }
+        });
+    }
+
+    const definitionCloseBtn = document.getElementById('definition-close-btn');
+    if (definitionCloseBtn) {
+        definitionCloseBtn.addEventListener('click', () => {
+            if (window.hideDefinition) {
+                window.hideDefinition();
+            }
+        });
+    }
+
+    const instructionsCloseX = document.getElementById('instructions-close-x');
+    if (instructionsCloseX) {
+        instructionsCloseX.addEventListener('click', () => {
+            if (window.hideInstructions) {
+                window.hideInstructions();
+            }
+        });
+    }
+
+    const closeInstructionsBtn = document.getElementById('close-instructions');
+    if (closeInstructionsBtn) {
+        closeInstructionsBtn.addEventListener('click', () => {
+            if (window.hideInstructions) {
+                window.hideInstructions();
+            }
+        });
+    }
+}
 
 // Export game instance for testing and debugging
 export { game };

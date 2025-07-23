@@ -1,22 +1,32 @@
 // UI utilities and mobile tab switching
+import { GAME_CONFIG } from './config.js';
 
 // Mobile tab switching
-export function switchTab(tabName) {
+export function switchTab(tabName, targetElement = null) {
     // Update tab buttons
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
     });
-    event.target.classList.add('active');
+    if (targetElement) {
+        targetElement.classList.add('active');
+    }
 
-    // Update tab content
-    if (tabName === 'game') {
-        document.getElementById('game-tab').classList.add('active');
-        document.getElementById('cornerstone-tab').classList.remove('active');
-        document.getElementById('cornerstone-tab').classList.remove('mobile-view');
-    } else {
-        document.getElementById('game-tab').classList.remove('active');
-        document.getElementById('cornerstone-tab').classList.add('active');
-        document.getElementById('cornerstone-tab').classList.add('mobile-view');
+    // Hide all tabs first
+    document.getElementById('game-tab').classList.remove('active', 'mobile-view');
+    document.getElementById('cornerstone-tab').classList.remove('active', 'mobile-view');
+    document.getElementById('found-tab').classList.remove('active', 'mobile-view');
+
+    // Show the selected tab
+    switch(tabName) {
+        case 'game':
+            document.getElementById('game-tab').classList.add('active');
+            break;
+        case 'cornerstone':
+            document.getElementById('cornerstone-tab').classList.add('active', 'mobile-view');
+            break;
+        case 'found':
+            document.getElementById('found-tab').classList.add('active', 'mobile-view');
+            break;
     }
 }
 
@@ -75,7 +85,7 @@ export function showMessage(text, type = '') {
             messageElement.textContent = '';
             messageElement.className = 'message';
         }
-    }, 3000);
+    }, GAME_CONFIG.MESSAGE_TIMEOUT);
 }
 
 // Current word display
@@ -87,20 +97,49 @@ export function updateCurrentWord(word, type = '') {
 
 // Found words list update
 export function updateFoundWordsList(foundWords, cornerstoneWords) {
-    const listElement = document.getElementById('found-words-list');
-    listElement.innerHTML = '';
+    const cornerstoneList = document.getElementById('cornerstone-found-list');
+    const regularList = document.getElementById('regular-found-list');
+    
+    // Clear both lists
+    if (cornerstoneList) cornerstoneList.innerHTML = '';
+    if (regularList) regularList.innerHTML = '';
+    
+    let cornerstoneCount = 0;
+    let regularCount = 0;
     
     foundWords.forEach(word => {
         const wordElement = document.createElement('div');
-        wordElement.className = cornerstoneWords.includes(word) ? 'found-word cornerstone' : 'found-word regular';
-        wordElement.textContent = word;
-        wordElement.onclick = () => {
-            // Show definition when clicked
-            const definition = window.getDefinitionSync ? window.getDefinitionSync(word) : 'Definition not available';
-            showDefinition(word, definition, cornerstoneWords.includes(word));
-        };
-        listElement.appendChild(wordElement);
+        const isCornerstone = cornerstoneWords.includes(word);
+        
+        if (isCornerstone) {
+            cornerstoneCount++;
+            wordElement.className = 'found-word cornerstone';
+            wordElement.textContent = word;
+            wordElement.onclick = () => {
+                if (window.game && typeof window.game.displayDefinitionPopup === 'function') {
+                    window.game.displayDefinitionPopup(word, true);
+                }
+            };
+            if (cornerstoneList) cornerstoneList.appendChild(wordElement);
+        } else {
+            regularCount++;
+            wordElement.className = 'found-word regular';
+            wordElement.textContent = word;
+            wordElement.onclick = () => {
+                if (window.game && typeof window.game.displayDefinitionPopup === 'function') {
+                    window.game.displayDefinitionPopup(word, false);
+                }
+            };
+            if (regularList) regularList.appendChild(wordElement);
+        }
     });
+    
+    // Update the found count
+    const foundCount = document.getElementById('found-count');
+    if (foundCount) {
+        const totalWords = cornerstoneCount + regularCount;
+        foundCount.textContent = `${totalWords} word${totalWords !== 1 ? 's' : ''}`;
+    }
 }
 
 // Cornerstone words progress update

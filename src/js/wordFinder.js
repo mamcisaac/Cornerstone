@@ -1,5 +1,6 @@
 // Word finding logic and grid management
 import { ADJACENCY } from './constants.js';
+import { GAME_CONFIG } from './config.js';
 
 export class WordFinder {
     constructor(wordSet) {
@@ -28,7 +29,7 @@ export class WordFinder {
         const newWord = currentWord + grid[position];
         
         // Check if this forms a valid word (4+ letters)
-        if (newWord.length >= 4 && this.wordSet.has(newWord.toUpperCase())) {
+        if (newWord.length >= GAME_CONFIG.MIN_WORD_LENGTH && this.wordSet.has(newWord.toUpperCase())) {
             validWords.add(newWord.toUpperCase());
         }
         
@@ -64,7 +65,7 @@ export class WordFinder {
             }
         }
         
-        return word.length >= 4 && this.wordSet.has(word.toUpperCase());
+        return word.length >= GAME_CONFIG.MIN_WORD_LENGTH && this.wordSet.has(word.toUpperCase());
     }
 
     // Get word from path

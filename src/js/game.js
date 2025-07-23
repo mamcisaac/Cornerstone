@@ -1,6 +1,8 @@
 // Main Cornerstones Game Class
-import { CROSS_POSITIONS, HAMILTONIAN_PATHS, SAMPLE_PUZZLES, ADJACENCY } from './constants.js';
+import { HAMILTONIAN_PATHS, SAMPLE_PUZZLES, ADJACENCY } from './constants.js';
+import { GAME_CONFIG } from './config.js';
 import { HintSystem } from './hints.js';
+import { logger } from './logger.js';
 import { updateStats, showMessage, updateCurrentWord, updateFoundWordsList, updateCornerstoneProgress, showDefinition } from './ui.js';
 import { WordFinder } from './wordFinder.js';
 
@@ -20,10 +22,16 @@ export class CornerstonesGame {
         this.letterSelectionWord = null;
         this.definitionRevealMode = false;
         this.globalLetterRevealMode = false;
-        this.cancelHandler = null;
+        this.letterRevealCancelHandler = null;
+        this.definitionCancelHandler = null;
         this.isDragging = false;
         this.touchStartTime = 0;
         this.wordFinder = new WordFinder();
+        
+        // Expose SAMPLE_PUZZLES to window for testing
+        if (!window.SAMPLE_PUZZLES) {
+            window.SAMPLE_PUZZLES = SAMPLE_PUZZLES;
+        }
         
         this.initializeGame();
         this.setupEventListeners();
@@ -45,6 +53,7 @@ export class CornerstonesGame {
         cell.addEventListener('touchstart', (e) => this.handleTouchStart(e));
         cell.addEventListener('touchmove', (e) => this.handleTouchMove(e));
         cell.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+        
     }
     
     recreateGridEventListeners() {
@@ -59,13 +68,21 @@ export class CornerstonesGame {
     }
 
     async initializeGame() {
-        this.createGrid();
-        this.generatePuzzle();
-        await this.findAllPossibleWords();
-        this.updateStats();
-        this.updateCornerstoneDisplay();
-        this.updateHintButtons();
-        await this.loadProgress();
+        try {
+            this.createGrid();
+            this.generatePuzzle();
+            await this.findAllPossibleWords();
+            this.updateStats();
+            this.updateCornerstoneDisplay();
+            this.updateHintButtons();
+            await this.loadProgress();
+            this.gameStarted = true;
+            logger.success('Game initialized successfully');
+        } catch (error) {
+            logger.error('Failed to initialize game:', error);
+            showMessage('Failed to initialize game. Please refresh the page.', 'error');
+            this.gameStarted = false;
+        }
     }
 
     createGrid() {
@@ -126,17 +143,24 @@ export class CornerstonesGame {
         this.validWords = [];
         
         if (!window.COMPREHENSIVE_WORD_SET) {
-            console.error('Word database not loaded!');
+            logger.error('Word database not loaded!');
             return;
         }
-        console.log(`Word database loaded with ${window.COMPREHENSIVE_WORD_SET.size} words`);
+        logger.info(`Word database loaded with ${window.COMPREHENSIVE_WORD_SET.size} words`);
         
         // Use WordFinder to get all words
         this.wordFinder.wordSet = window.COMPREHENSIVE_WORD_SET;
         this.allPossibleWords = this.wordFinder.findAllWords(this.grid);
         
-        // Get the current puzzle's seed word
-        const currentSeedWord = SAMPLE_PUZZLES[this.currentPuzzle].seedWord;
+        // Ensure COMMON_WORDS_SET is loaded
+        if (!window.COMMON_WORDS_SET) {
+            logger.error('COMMON_WORDS_SET not loaded! Game cannot determine cornerstone words.');
+            showMessage('Error loading word database. Please refresh the page.', 'error');
+            return;
+        }
+        
+        logger.info(`Found ${this.allPossibleWords.size} total possible words`);
+        logger.info(`COMMON_WORDS_SET size: ${window.COMMON_WORDS_SET.size}`);
         
         // Classify words as cornerstone or valid
         this.allPossibleWords.forEach(word => {
@@ -150,37 +174,43 @@ export class CornerstonesGame {
             };
             
             // Only common words qualify as cornerstone words
-            if (window.COMMON_WORDS_SET && window.COMMON_WORDS_SET.has(word.toLowerCase())) {
+            // COMMON_WORDS_SET contains lowercase words, so we need to check lowercase
+            const isCommon = window.COMMON_WORDS_SET.has(word.toLowerCase());
+            
+            if (isCommon) {
                 this.cornerstoneWords.push(wordData);
             } else {
                 this.validWords.push(word);
             }
         });
         
-        console.log(`Found ${this.cornerstoneWords.length} cornerstone words and ${this.validWords.length} other valid words`);
+        logger.game(`Found ${this.cornerstoneWords.length} cornerstone words and ${this.validWords.length} other valid words`);
         
         // Fetch definitions asynchronously
         this.fetchAllDefinitions();
     }
 
     async fetchAllDefinitions() {
-        console.log('Fetching definitions for all words...');
+        logger.info('Fetching definitions for all words...');
         
-        // Fetch definitions for cornerstone words (with LLM enhancement)
+        // Fetch definitions for cornerstone words
         const cornerstonePromises = this.cornerstoneWords.map(async (wordData) => {
             try {
                 // Check if it's a seed word first
                 if (window.SEED_WORDS && window.SEED_WORDS[wordData.word]) {
                     wordData.definition = window.SEED_WORDS[wordData.word].definition;
                 } else if (window.getDefinition) {
-                    wordData.definition = await window.getDefinition(wordData.word, true); // true = isCornerstone
+                    // Use async getDefinition which can fetch from API
+                    const def = await window.getDefinition(wordData.word, true);
+                    wordData.definition = def || "A common English word";
                 } else if (window.getDefinitionSync) {
-                    wordData.definition = window.getDefinitionSync(wordData.word);
+                    const def = window.getDefinitionSync(wordData.word);
+                    wordData.definition = (def === "Loading definition...") ? "A common English word" : def;
                 } else {
                     wordData.definition = "A common English word";
                 }
             } catch (error) {
-                console.warn(`Failed to fetch definition for cornerstone word "${wordData.word}":`, error);
+                logger.warn(`Failed to fetch definition for cornerstone word "${wordData.word}":`, error);
                 wordData.definition = "A common English word";
             }
         });
@@ -192,7 +222,8 @@ export class CornerstonesGame {
                 if (window.getDefinition) {
                     definition = await window.getDefinition(word, false);
                 } else if (window.getDefinitionSync) {
-                    definition = window.getDefinitionSync(word);
+                    const def = window.getDefinitionSync(word);
+                    definition = (def === "Loading definition..." || !def) ? "A valid English word" : def;
                 }
                 
                 // Store in a map for quick lookup when showing definitions
@@ -201,20 +232,24 @@ export class CornerstonesGame {
                 }
                 this.wordDefinitions.set(word.toUpperCase(), definition);
             } catch (error) {
-                console.warn(`Failed to fetch definition for word "${word}":`, error);
+                logger.warn(`Failed to fetch definition for word "${word}":`, error);
                 if (!this.wordDefinitions) {
                     this.wordDefinitions = new Map();
                 }
-                this.wordDefinitions.set(word.toUpperCase(), "A common English word");
+                this.wordDefinitions.set(word.toUpperCase(), "A valid English word");
             }
         });
 
         // Wait for all definitions to be fetched
-        await Promise.all([...cornerstonePromises, ...validWordPromises]);
+        try {
+            await Promise.all([...cornerstonePromises, ...validWordPromises]);
+        } catch (error) {
+            logger.warn('Some definitions failed to load:', error);
+        }
         
         // Update the display once all definitions are loaded
         this.updateCornerstoneDisplay();
-        console.log('All definitions loaded successfully');
+        logger.success('All definitions loaded successfully');
     }
 
     setupEventListeners() {
@@ -367,7 +402,7 @@ export class CornerstonesGame {
         this.addToPath(index);
     }
 
-    endSelection(e) {
+    endSelection() {
         if (!this.isSelecting) return;
         this.isSelecting = false;
         this.submitCurrentWord();
@@ -379,10 +414,10 @@ export class CornerstonesGame {
         // Clear selection first, before showing messages
         this.clearSelection();
         
-        if (word.length >= 4) {
+        if (word.length >= GAME_CONFIG.MIN_WORD_LENGTH) {
             this.checkWord(word);
         } else if (word.length > 0) {
-            showMessage('Words must be at least 4 letters', 'error');
+            showMessage(GAME_CONFIG.MESSAGES.TOO_SHORT, 'error');
         }
     }
 
@@ -462,42 +497,53 @@ export class CornerstonesGame {
     }
 
     checkWord(word) {
-        const upperWord = word.toUpperCase();
-        
-        if (this.foundWords.has(upperWord)) {
-            showMessage(`"${upperWord}" already found!`, 'error');
-            return;
-        }
-        
-        // Check if it's a cornerstone word
-        const cornerstoneWord = this.cornerstoneWords.find(w => w.word === upperWord);
-        if (cornerstoneWord) {
-            // Animate grid cells
-            this.animateWordAcceptance();
+        try {
+            const upperWord = word.toUpperCase();
             
-            cornerstoneWord.found = true;
-            this.foundWords.add(upperWord);
-            showMessage(`Cornerstone word found: "${upperWord}"!`, 'cornerstone');
-            this.updateFoundWords();
-            this.updateStats();
-            this.updateCornerstoneDisplay();
-            this.saveProgress();
-        } else if (this.validWords.includes(upperWord)) {
-            // Animate grid cells
-            this.animateWordAcceptance();
+            if (this.foundWords.has(upperWord)) {
+                showMessage(`"${upperWord}" already found!`, 'error');
+                return;
+            }
             
-            // Valid word but not cornerstone - earn a hint
-            this.foundWords.add(upperWord);
-            
-            this.hintSystem.earnHint();
-            showMessage(`"${upperWord}" found! +1 hint earned`, 'success');
-            this.updateFoundWords();
-            this.updateStats();
-            this.updateHintButtons();
-            this.updateCornerstoneDisplay(); // Update to make words clickable now that we have hints
-            this.saveProgress();
-        } else {
-            showMessage('Not a valid word', 'error');
+            // Check if it's a cornerstone word
+            const cornerstoneWord = this.cornerstoneWords.find(w => w.word === upperWord);
+            if (cornerstoneWord) {
+                // Animate grid cells
+                this.animateWordAcceptance();
+                
+                cornerstoneWord.found = true;
+                this.foundWords.add(upperWord);
+                showMessage(`Cornerstone word found: "${upperWord}"!`, 'cornerstone');
+                this.updateFoundWords();
+                this.updateStats();
+                this.updateCornerstoneDisplay();
+                this.saveProgress();
+                
+                // Check if puzzle is complete
+                const allCornerstonesFound = this.cornerstoneWords.every(w => w.found);
+                if (allCornerstonesFound) {
+                    showMessage('🎉 Puzzle complete! All cornerstone words found!', 'cornerstone');
+                }
+            } else if (this.validWords.includes(upperWord)) {
+                // Animate grid cells
+                this.animateWordAcceptance();
+                
+                // Valid word but not cornerstone - earn a hint
+                this.foundWords.add(upperWord);
+                
+                this.hintSystem.earnHint();
+                showMessage(`"${upperWord}" found! +1 hint earned`, 'success');
+                this.updateFoundWords();
+                this.updateStats();
+                this.updateHintButtons();
+                this.updateCornerstoneDisplay();
+                this.saveProgress();
+            } else {
+                showMessage('Not a valid word', 'error');
+            }
+        } catch (error) {
+            logger.error('Error checking word:', error);
+            showMessage('Error checking word. Please try again.', 'error');
         }
     }
 
@@ -516,7 +562,7 @@ export class CornerstonesGame {
         });
     }
 
-    showDefinition(word, isCornerstone) {
+    displayDefinitionPopup(word, isCornerstone) {
         let definition;
         if (isCornerstone) {
             // Find the cornerstone word data
@@ -552,8 +598,14 @@ export class CornerstonesGame {
         const totalFound = this.foundWords.size;
         const totalPossible = this.allPossibleWords.size;
         
+        // Update all stats displays to ensure consistency
         updateStats(totalFound, cornerstoneFound, totalPossible, this.hintSystem.availableHints);
         updateCornerstoneProgress(cornerstoneFound, totalCornerstone);
+        
+        // Log for debugging if there's a mismatch
+        if (totalCornerstone === 0 && this.allPossibleWords.size > 0) {
+            logger.error(`No cornerstone words found for puzzle ${this.currentPuzzle}!`);
+        }
     }
 
     updateCornerstoneDisplay() {
@@ -562,17 +614,28 @@ export class CornerstonesGame {
         
         listEl.innerHTML = '';
         
-        let displayWords = [...this.cornerstoneWords];
+        const displayWords = [...this.cornerstoneWords];
         // Always sort alphabetically
         displayWords.sort((a, b) => a.word.localeCompare(b.word));
         
-        displayWords.forEach((wordData, index) => {
+        displayWords.forEach((wordData) => {
             const wordEl = document.createElement('div');
             wordEl.className = `cornerstone-word ${wordData.found ? 'found' : 'hidden'}`;
             
             let content = '<div>';
             if (wordData.found) {
                 content += `<span class="cornerstone-word-text">${wordData.word}</span>`;
+            } else if (this.globalLetterRevealMode) {
+                // In global letter reveal mode - show individual clickable letters
+                content += '<span class="cornerstone-word-text">';
+                for (let i = 0; i < wordData.word.length; i++) {
+                    const letter = wordData.revealed && wordData.revealed[i] ? wordData.word[i] : '_';
+                    const isClickable = !wordData.revealed || !wordData.revealed[i];
+                    const letterClass = isClickable ? 'clickable-letter-global' : 'revealed-letter-global';
+                    content += `<span class="${letterClass}" data-word="${wordData.word}" data-letter-index="${i}">${letter}</span>`;
+                    if (i < wordData.word.length - 1) content += ' ';
+                }
+                content += '</span>';
             } else if (wordData.pattern) {
                 content += `<span class="cornerstone-word-text">${wordData.pattern}</span>`;
             } else {
@@ -591,73 +654,222 @@ export class CornerstonesGame {
             wordEl.innerHTML = content;
             
             if (wordData.found) {
-                wordEl.onclick = () => this.showDefinition(wordData.word, true);
+                wordEl.onclick = () => this.displayDefinitionPopup(wordData.word, true);
+            } else if (this.definitionRevealMode && !wordData.showDefinition) {
+                // In definition reveal mode, make unfound words clickable
+                wordEl.style.cursor = 'pointer';
+                wordEl.classList.add('definition-selectable');
+                wordEl.onclick = () => this.revealDefinitionForWord(wordData);
             }
             
             listEl.appendChild(wordEl);
         });
+        
+        // Add click handlers for letters in global reveal mode
+        if (this.globalLetterRevealMode) {
+            const clickableLetters = listEl.querySelectorAll('.clickable-letter-global');
+            clickableLetters.forEach(letterEl => {
+                letterEl.onclick = (e) => {
+                    e.stopPropagation();
+                    const word = letterEl.dataset.word;
+                    const letterIndex = parseInt(letterEl.dataset.letterIndex);
+                    const wordData = this.cornerstoneWords.find(w => w.word === word);
+                    if (wordData) {
+                        this.revealLetterAtPosition(wordData, letterIndex);
+                    }
+                };
+            });
+        }
     }
 
     updateHintButtons() {
         const hints = this.hintSystem.availableHints;
         
         // Enable/disable buttons
-        const revealWordBtn = document.getElementById('reveal-word-btn');
         const revealLetterBtn = document.getElementById('reveal-letter-btn');
         const showDefinitionBtn = document.getElementById('show-definition-btn');
         
-        if (revealWordBtn) {
-            revealWordBtn.disabled = hints < 1 || this.cornerstoneWords.every(w => w.found);
-        }
         if (revealLetterBtn) {
             revealLetterBtn.disabled = hints < 1 || this.cornerstoneWords.every(w => w.found);
         }
         if (showDefinitionBtn) {
-            showDefinitionBtn.disabled = false; // Show definition is always free
+            showDefinitionBtn.disabled = hints < 1 || this.cornerstoneWords.every(w => w.showDefinition);
         }
     }
 
     // Hint methods
-    revealWord() {
-        const result = this.hintSystem.revealWord(this.cornerstoneWords);
-        if (result) {
-            showMessage(`Revealed: ${result.word}`, 'success');
-            this.updateStats();
-            this.updateCornerstoneDisplay();
-            this.updateHintButtons();
-            this.saveProgress();
-        } else {
-            showMessage('No hints available or all words found!', 'error');
-        }
-    }
-
     revealLetter() {
-        const result = this.hintSystem.revealLetter(this.cornerstoneWords);
-        if (result) {
-            showMessage(`Letter revealed in: ${result.word}`, 'success');
-            this.updateStats();
-            this.updateCornerstoneDisplay();
-            this.updateHintButtons();
-            this.saveProgress();
-        } else {
-            showMessage('No hints available or all words found!', 'error');
+        // Check if player has enough hints
+        if (!this.hintSystem.canUseHint(1)) {
+            showMessage('Not enough hints!', 'error');
+            return;
         }
-    }
 
-    showDefinition() {
-        // Free hint - just enable definition mode
+        // Check if there are any unfound cornerstone words
         const unfoundWords = this.cornerstoneWords.filter(w => !w.found);
         if (unfoundWords.length === 0) {
             showMessage('All cornerstone words found!', 'error');
             return;
         }
+
+        // Enter global letter reveal mode for cornerstone words
+        this.globalLetterRevealMode = true;
         
-        // Pick a random unfound word and show its definition
-        const randomWord = unfoundWords[Math.floor(Math.random() * unfoundWords.length)];
-        randomWord.showDefinition = true;
+        // Initialize revealed arrays for all unfound words if needed
+        this.cornerstoneWords.forEach(wordData => {
+            if (!wordData.found && !wordData.revealed) {
+                wordData.revealed = new Array(wordData.word.length).fill(false);
+            }
+        });
         
-        showMessage(`Definition revealed for a cornerstone word!`, 'success');
+        showMessage('Click on any letter position to reveal it!', 'success');
         this.updateCornerstoneDisplay();
+        
+        // Add click handler for cancellation
+        this.addLetterRevealCancelHandler();
+    }
+
+    startDefinitionRevealMode() {
+        // Check if player has enough hints
+        if (!this.hintSystem.canUseHint(1)) {
+            showMessage('Not enough hints!', 'error');
+            return;
+        }
+
+        // Find cornerstone words that don't have definitions shown
+        const wordsWithoutDef = this.cornerstoneWords.filter(w => !w.showDefinition);
+        if (wordsWithoutDef.length === 0) {
+            showMessage('All definitions already revealed!', 'error');
+            return;
+        }
+
+        // Enter definition reveal mode
+        this.definitionRevealMode = true;
+        showMessage('Click on a cornerstone word to reveal its definition!', 'success');
+        this.updateCornerstoneDisplay();
+        
+        // Add click handler for cancellation
+        this.addDefinitionCancelHandler();
+    }
+
+
+    exitLetterRevealMode() {
+        this.globalLetterRevealMode = false;
+        this.removeLetterRevealCancelHandler();
+        this.updateCornerstoneDisplay();
+    }
+
+    addLetterRevealCancelHandler() {
+        this.letterRevealCancelHandler = (e) => {
+            // Check if click is on a clickable letter
+            if (!e.target.classList.contains('clickable-letter-global')) {
+                this.exitLetterRevealMode();
+                showMessage('Letter reveal cancelled', 'info');
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', this.letterRevealCancelHandler);
+        }, 100);
+    }
+
+    removeLetterRevealCancelHandler() {
+        if (this.letterRevealCancelHandler) {
+            document.removeEventListener('click', this.letterRevealCancelHandler);
+            this.letterRevealCancelHandler = null;
+        }
+    }
+
+    addDefinitionCancelHandler() {
+        this.definitionCancelHandler = (e) => {
+            // Check if click is outside cornerstone words
+            if (!e.target.closest('.cornerstone-word')) {
+                this.exitDefinitionRevealMode();
+                showMessage('Definition reveal cancelled', 'info');
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', this.definitionCancelHandler);
+        }, 100);
+    }
+
+    removeDefinitionCancelHandler() {
+        if (this.definitionCancelHandler) {
+            document.removeEventListener('click', this.definitionCancelHandler);
+            this.definitionCancelHandler = null;
+        }
+    }
+
+    exitDefinitionRevealMode() {
+        this.definitionRevealMode = false;
+        this.removeDefinitionCancelHandler();
+        this.updateCornerstoneDisplay();
+    }
+
+    revealDefinitionForWord(wordData) {
+        // Use the hint
+        if (!this.hintSystem.useHints(1)) {
+            showMessage('Not enough hints!', 'error');
+            this.exitDefinitionRevealMode();
+            return;
+        }
+        
+        // Reveal the definition
+        wordData.showDefinition = true;
+        
+        // Exit definition reveal mode
+        this.exitDefinitionRevealMode();
+        
+        showMessage(`Definition revealed for "${wordData.word}"!`, 'success');
+        
+        // Update displays
+        this.updateStats();
+        this.updateCornerstoneDisplay();
+        this.updateHintButtons();
+        this.saveProgress();
+    }
+    
+    revealLetterAtPosition(wordData, letterIndex) {
+        // Exit letter reveal mode
+        this.globalLetterRevealMode = false;
+        this.removeLetterRevealCancelHandler();
+        
+        // Use the hint
+        if (!this.hintSystem.useHints(1)) {
+            showMessage('Not enough hints!', 'error');
+            this.updateCornerstoneDisplay();
+            return;
+        }
+        
+        // Initialize revealed array if needed
+        if (!wordData.revealed) {
+            wordData.revealed = new Array(wordData.word.length).fill(false);
+        }
+        
+        // Check if already revealed (shouldn't happen with proper UI)
+        if (wordData.revealed[letterIndex]) {
+            showMessage('That letter is already revealed!', 'error');
+            // Refund the hint
+            this.hintSystem.earnHint();
+            this.updateCornerstoneDisplay();
+            return;
+        }
+        
+        // Reveal the letter
+        wordData.revealed[letterIndex] = true;
+        
+        // Update pattern
+        wordData.pattern = wordData.word.split('').map((letter, index) => {
+            return wordData.revealed[index] ? letter : '_';
+        }).join(' ');
+        
+        showMessage(`Letter '${wordData.word[letterIndex]}' revealed!`, 'success');
+        
+        // Update displays
+        this.updateStats();
+        this.updateCornerstoneDisplay();
+        this.updateHintButtons();
         this.saveProgress();
     }
 
@@ -715,6 +927,7 @@ export class CornerstonesGame {
         const saved = localStorage.getItem('cornerstonesProgress');
         if (saved) {
             const progress = JSON.parse(saved);
+            // Only load progress from the same day
             if (progress.date === new Date().toDateString()) {
                 this.currentPuzzle = progress.puzzle;
                 this.foundWords = new Set(progress.foundWords);

@@ -20,8 +20,9 @@
     <!-- Mobile tabs for smaller screens -->
     <div class="mobile-tabs">
         <div class="tab-buttons">
-            <button class="tab-button active" onclick="switchTab('game')">Game</button>
-            <button class="tab-button" onclick="switchTab('cornerstone')">Cornerstone Words</button>
+            <button class="tab-button active" data-tab="game">Game</button>
+            <button class="tab-button" data-tab="cornerstone">Cornerstone Words</button>
+            <button class="tab-button" data-tab="found">Found Words</button>
         </div>
     </div>
 
@@ -32,7 +33,7 @@
                 <div class="header">
                     <h1 class="title">Cornerstones</h1>
                     <p class="subtitle">Find words in the grid by connecting adjacent letters</p>
-                    <button class="help-button" onclick="showInstructions()">?</button>
+                    <button class="help-button" id="help-button">?</button>
                 </div>
 
                 <!-- Enhanced Stats Display with Chips -->
@@ -63,13 +64,8 @@
 
                 <div class="game-grid" id="grid"></div>
 
-                <div class="found-words">
-                    <h3>Found Words</h3>
-                    <div class="word-list" id="found-words-list"></div>
-                </div>
-
                 <div class="controls">
-                    <button class="control-button" id="switch-puzzle-btn" onclick="game.switchPuzzle()">Switch Puzzle</button>
+                    <button class="control-button" id="switch-puzzle-btn">Switch Puzzle</button>
                 </div>
             </div>
         </div>
@@ -98,18 +94,35 @@
                         <span class="hint-count" id="hint-count-display">3 remaining</span>
                     </div>
                     <div class="hint-actions">
-                        <button class="hint-button" onclick="game.revealWord()" id="reveal-word-btn">
-                            <span>Reveal a word</span>
-                            <span class="hint-cost">1 hint</span>
-                        </button>
-                        <button class="hint-button" onclick="game.revealLetter()" id="reveal-letter-btn">
+                        <button class="hint-button" id="reveal-letter-btn">
                             <span>Reveal a letter</span>
                             <span class="hint-cost">1 hint</span>
                         </button>
-                        <button class="hint-button" onclick="game.showDefinition()" id="show-definition-btn">
+                        <button class="hint-button" id="show-definition-btn">
                             <span>Show definition</span>
-                            <span class="hint-cost">Free</span>
+                            <span class="hint-cost">1 hint</span>
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Found Words Panel -->
+        <div id="found-tab" class="tab-content found-panel">
+            <div class="found-words-section">
+                <h3>Found Words
+                    <span class="found-count" id="found-count">0 words</span>
+                </h3>
+                
+                <div class="word-categories">
+                    <div class="word-category">
+                        <h4 class="category-title cornerstone">Cornerstone Words</h4>
+                        <div class="word-list" id="cornerstone-found-list"></div>
+                    </div>
+                    
+                    <div class="word-category">
+                        <h4 class="category-title regular">Other Words</h4>
+                        <div class="word-list" id="regular-found-list"></div>
                     </div>
                 </div>
             </div>
@@ -117,17 +130,17 @@
     </div>
 
     <!-- Definition Popup -->
-    <div class="overlay" id="overlay" onclick="hideDefinition()"></div>
+    <div class="overlay" id="overlay"></div>
     <div class="definition-popup" id="definition-popup">
         <div class="popup-word" id="popup-word"></div>
         <div class="popup-type" id="popup-type"></div>
         <div class="popup-definition" id="popup-definition"></div>
-        <button class="close-btn" onclick="hideDefinition()">Close</button>
+        <button class="close-btn" id="definition-close-btn">Close</button>
     </div>
 
     <!-- Instructions Popup -->
     <div class="instructions-popup" id="instructions-popup">
-        <button class="instructions-close-x" onclick="hideInstructions()">×</button>
+        <button class="instructions-close-x" id="instructions-close-x">×</button>
         <h2>How to Play Cornerstones</h2>
         
         <div class="section">
@@ -153,13 +166,12 @@
         <div class="section">
             <h3>💡 Hints Available</h3>
             <ul>
-                <li><strong>Reveal a word:</strong> Shows you a random unfound cornerstone word</li>
                 <li><strong>Reveal a letter:</strong> Shows one letter position in a cornerstone word</li>
                 <li><strong>Show definition:</strong> Click any cornerstone word to see its definition (free!)</li>
             </ul>
         </div>
 
-        <div class="section">
+        <div class="section mobile-only">
             <h3>📱 Mobile Tips</h3>
             <ul>
                 <li>Use the tabs at the top to switch between Game and Cornerstone Words</li>
@@ -168,7 +180,7 @@
             </ul>
         </div>
 
-        <button class="close-instructions" onclick="hideInstructions()">Got it!</button>
+        <button class="close-instructions" id="close-instructions">Got it!</button>
     </div>
 
     <!-- JavaScript Files -->

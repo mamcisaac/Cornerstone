@@ -405,8 +405,14 @@ function getDefinitionSync(word) {
     }
   }
   
-  // Return fallback - async version will update this later
-  return "Loading definition...";
+  // Return a more descriptive fallback based on word type
+  if (word.length <= 5) {
+    return "A short English word";
+  } else if (word.length <= 7) {
+    return "A common English word";
+  } else {
+    return "A longer English word";
+  }
 }
 
 // Make functions available globally

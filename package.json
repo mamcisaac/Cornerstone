@@ -10,16 +10,19 @@
     "test:watch": "jest --config tests/jest.config.js --watch",
     "test:coverage": "jest --config tests/jest.config.js --coverage",
     "test:headless": "jest --config tests/jest.config.js --testTimeout=30000",
-    "lint": "echo 'No linter configured. Install ESLint for code quality checks.'",
+    "lint": "eslint src/js/**/*.js",
     "fetch-definitions": "node scripts/definition-fetcher.js --help",
     "validate-puzzles": "node scripts/definition-fetcher.js --validate",
     "build": "echo 'No build process configured. Files are served directly.'"
   },
   "dependencies": {
+    "jest-environment-jsdom": "^30.0.5",
     "puppeteer": "^24.14.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.31.0",
     "@types/jest": "^30.0.0",
+    "eslint": "^9.31.0",
     "jest": "^30.0.4"
   }
 }

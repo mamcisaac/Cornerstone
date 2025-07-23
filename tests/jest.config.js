@@ -2,29 +2,29 @@
 
 module.exports = {
   // Test environment
-  testEnvironment: 'jsdom',
+  testEnvironment: 'node',
   
   // Test file patterns
   testMatch: [
-    '<rootDir>/tests/unit/**/*.test.js',
-    '<rootDir>/tests/integration/**/*.test.js'
+    '<rootDir>/unit/**/*.test.js',
+    '<rootDir>/integration/**/*.test.js'
   ],
   
-  // Setup files
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  // Setup files - disable for Puppeteer tests
+  // setupFilesAfterEnv: ['<rootDir>/setup.js'],
   
   // Coverage configuration
   collectCoverage: true,
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['html', 'text', 'lcov'],
   collectCoverageFrom: [
-    'src/js/**/*.js',
-    '!src/js/**/*.test.js'
+    '../src/js/**/*.js',
+    '!../src/js/**/*.test.js'
   ],
   
   // Module paths
-  moduleNameMapping: {
-    '^@/(.*)$': '<rootDir>/src/$1'
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/../src/$1'
   },
   
   // Transform files
@@ -40,5 +40,8 @@ module.exports = {
   ],
   
   // Verbose output
-  verbose: true
+  verbose: true,
+  
+  // Test timeout for Puppeteer tests
+  testTimeout: 60000
 };

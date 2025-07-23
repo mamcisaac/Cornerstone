@@ -1,9 +1,16 @@
-// Script to find all possible words in each puzzle
+// Simple script to extract cornerstone words from all puzzles
 const fs = require('fs');
 
-// Load the word validator
-const WORDS_4PLUS = fs.readFileSync('./words_4plus.txt', 'utf8').split('\n').filter(w => w.length >= 4);
-const COMMON_WORDS_SET = new Set(require('./common-words.js').COMMON_WORDS_LIST.map(w => w.toLowerCase()));
+// Load common words
+const { COMMON_WORDS_LIST } = require('./common-words.js');
+const COMMON_WORDS_SET = new Set(COMMON_WORDS_LIST.map(w => w.toLowerCase()));
+
+// Load all valid words
+const WORDS_4PLUS = fs.readFileSync('./words_4plus.txt', 'utf8')
+    .split('\n')
+    .map(w => w.trim().toLowerCase())
+    .filter(w => w.length >= 4);
+const VALID_WORDS_SET = new Set(WORDS_4PLUS);
 
 // Puzzle configuration
 const HAMILTONIAN_PATHS = [
@@ -59,27 +66,29 @@ function generateGrid(seedWord, pathIndex) {
     return grid;
 }
 
-function findAllWords(grid) {
-    const allWords = new Set();
+function findCornerstoneWords(grid, maxWords = 100) {
     const cornerstoneWords = new Set();
+    let wordsChecked = 0;
     
-    function dfsWordSearch(position, currentWord, path, visited) {
+    function dfsWordSearch(position, currentWord, visited) {
+        if (wordsChecked >= maxWords) return;
+        
         visited[position] = true;
         const newWord = currentWord + grid[position];
         
-        if (newWord.length >= 4 && WORDS_4PLUS.includes(newWord.toLowerCase())) {
-            const upperWord = newWord.toUpperCase();
-            allWords.add(upperWord);
-            if (COMMON_WORDS_SET.has(newWord.toLowerCase())) {
-                cornerstoneWords.add(upperWord);
+        if (newWord.length >= 4 && newWord.length <= 12) {
+            wordsChecked++;
+            const lowerWord = newWord.toLowerCase();
+            if (VALID_WORDS_SET.has(lowerWord) && COMMON_WORDS_SET.has(lowerWord)) {
+                cornerstoneWords.add(newWord.toUpperCase());
             }
         }
         
-        if (newWord.length <= 12) {
+        if (newWord.length < 12) {
             const neighbors = ADJACENCY[position] || [];
             neighbors.forEach(neighbor => {
-                if (!visited[neighbor] && grid[neighbor]) {
-                    dfsWordSearch(neighbor, newWord, [...path, neighbor], visited.slice());
+                if (!visited[neighbor] && grid[neighbor] && wordsChecked < maxWords) {
+                    dfsWordSearch(neighbor, newWord, visited.slice());
                 }
             });
         }
@@ -87,37 +96,30 @@ function findAllWords(grid) {
     
     // Start from each position
     [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14].forEach(startPos => {
-        const visited = new Array(16).fill(false);
-        dfsWordSearch(startPos, '', [startPos], visited);
+        if (wordsChecked < maxWords) {
+            const visited = new Array(16).fill(false);
+            dfsWordSearch(startPos, '', visited);
+        }
     });
     
-    return { allWords: Array.from(allWords), cornerstoneWords: Array.from(cornerstoneWords) };
+    return Array.from(cornerstoneWords);
 }
 
-// Process each puzzle
+// Process each puzzle and collect all unique cornerstone words
 const allCornerstoneWords = new Set();
 
-console.log('Finding all words in each puzzle...\n');
+console.log('Finding cornerstone words in each puzzle (sampling first 100 word patterns per puzzle)...\n');
 
 Object.entries(SAMPLE_PUZZLES).forEach(([name, puzzle]) => {
     const grid = generateGrid(puzzle.seedWord, puzzle.pathIndex);
-    const { allWords, cornerstoneWords } = findAllWords(grid);
+    const cornerstoneWords = findCornerstoneWords(grid);
     
-    console.log(`${name}:`);
-    console.log(`- Total words: ${allWords.length}`);
-    console.log(`- Cornerstone words: ${cornerstoneWords.length}`);
-    console.log(`- Cornerstone words found: ${cornerstoneWords.sort().join(', ')}`);
-    console.log('');
-    
-    // Add to global set
+    console.log(`${name}: Found ${cornerstoneWords.length} cornerstone words (sample)`);
     cornerstoneWords.forEach(word => allCornerstoneWords.add(word));
 });
 
-console.log(`\nTotal unique cornerstone words across all puzzles: ${allCornerstoneWords.size}`);
-console.log('\nAll cornerstone words:');
+console.log('\n=== UNIQUE CORNERSTONE WORDS FOUND ===');
+console.log(`Total unique cornerstone words found: ${allCornerstoneWords.size}`);
+console.log('\nAll cornerstone words (alphabetically):');
 const sortedWords = Array.from(allCornerstoneWords).sort();
 sortedWords.forEach(word => console.log(word));
-
-// Save to file for next step
-fs.writeFileSync('cornerstone-words-to-define.json', JSON.stringify(sortedWords, null, 2));
-console.log('\nSaved to cornerstone-words-to-define.json');

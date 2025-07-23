@@ -2171,7 +2171,12 @@
             }
 
             async switchPuzzle() {
-                this.currentPuzzle = this.currentPuzzle === "CORNERSTONES" ? "AVAILABILITY" : "CORNERSTONES";
+                // Get all puzzle names in order
+                const puzzleNames = Object.keys(SAMPLE_PUZZLES);
+                const currentIndex = puzzleNames.indexOf(this.currentPuzzle);
+                const nextIndex = (currentIndex + 1) % puzzleNames.length;
+                
+                this.currentPuzzle = puzzleNames[nextIndex];
                 this.foundWords.clear();
                 this.hintSystem = new HintSystem();
                 this.generatePuzzle();

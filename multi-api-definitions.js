@@ -4,11 +4,29 @@ const https = require('https');
 const { ALL_CORNERSTONES_WORDS } = require('./all-cornerstones-words.js');
 
 // API Configuration with rate limits and endpoints
+// Reordered to prioritize Datamuse based on performance analysis
 const DICTIONARY_APIS = [
+    {
+        name: 'Datamuse',
+        endpoint: (word) => `https://api.datamuse.com/words?sp=${word.toLowerCase()}&md=d&max=1`,
+        rateLimit: { requests: 100000, per: 'day' }, // Very generous limit
+        parser: (data) => {
+            const parsed = JSON.parse(data);
+            if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+                const entry = parsed[0];
+                if (entry.defs && Array.isArray(entry.defs) && entry.defs.length > 0) {
+                    // Datamuse format: "part_of_speech\tdefinition"
+                    const defParts = entry.defs[0].split('\t');
+                    return defParts.length > 1 ? defParts[1] : defParts[0];
+                }
+            }
+            return null;
+        }
+    },
     {
         name: 'FreeDictionary',
         endpoint: (word) => `https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`,
-        rateLimit: { requests: 100, per: 'minute' }, // Conservative estimate
+        rateLimit: { requests: 60, per: 'minute' }, // More conservative based on observed limits
         parser: (data) => {
             const parsed = JSON.parse(data);
             if (parsed && Array.isArray(parsed) && parsed.length > 0) {
@@ -24,48 +42,18 @@ const DICTIONARY_APIS = [
         }
     },
     {
-        name: 'WordsAPI',
-        endpoint: (word) => `https://wordsapiv1.p.rapidapi.com/words/${word.toLowerCase()}`,
-        headers: {
-            'X-RapidAPI-Key': 'YOUR_RAPIDAPI_KEY_HERE', // Need to get this
-            'X-RapidAPI-Host': 'wordsapiv1.p.rapidapi.com'
-        },
-        rateLimit: { requests: 2500, per: 'month' }, // Free tier
-        parser: (data) => {
-            const parsed = JSON.parse(data);
-            if (parsed && parsed.results && parsed.results.length > 0) {
-                return parsed.results[0].definition;
-            }
-            return null;
-        }
-    },
-    {
         name: 'Wordnik',
-        endpoint: (word) => `https://api.wordnik.com/v4/word.json/${word.toLowerCase()}/definitions?limit=1&includeRelated=false&useCanonical=false&includeTags=false&api_key=YOUR_WORDNIK_KEY`,
-        rateLimit: { requests: 1000, per: 'hour' }, // Free tier
+        endpoint: (word) => `https://api.wordnik.com/v4/word.json/${word.toLowerCase()}/definitions?limit=1&includeRelated=false&useCanonical=false&includeTags=false&api_key=${process.env.WORDNIK_API_KEY || 'demo'}`,
+        rateLimit: { requests: 5000, per: 'hour' }, // Free tier with API key
         parser: (data) => {
             const parsed = JSON.parse(data);
-            if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+            if (parsed && Array.isArray(parsed) && parsed.length > 0 && parsed[0].text) {
                 return parsed[0].text;
             }
             return null;
         }
-    },
-    {
-        name: 'DictionaryAPI',
-        endpoint: (word) => `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${word.toLowerCase()}?key=YOUR_MERRIAM_WEBSTER_KEY`,
-        rateLimit: { requests: 1000, per: 'day' }, // Free tier
-        parser: (data) => {
-            const parsed = JSON.parse(data);
-            if (parsed && Array.isArray(parsed) && parsed.length > 0) {
-                const entry = parsed[0];
-                if (entry.shortdef && entry.shortdef.length > 0) {
-                    return entry.shortdef[0];
-                }
-            }
-            return null;
-        }
     }
+    // Removed Google Dictionary and others that rarely work
 ];
 
 // Rate limiting tracker

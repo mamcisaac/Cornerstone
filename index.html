@@ -887,11 +887,11 @@
 
     <div class="hint-options-menu" id="hintOptionsMenu">
         <h4>Choose Hint Type</h4>
-        <button class="hint-option-button" id="hintRevealLetterOption" onclick="game.selectHintOption('letter')">
+        <button class="hint-option-button" id="hintRevealLetterOption" onclick="if(window.game) window.game.selectHintOption('letter')">
             Reveal a Letter
             <span class="hint-option-cost">1 hint</span>
         </button>
-        <button class="hint-option-button" id="hintRevealDefinitionOption" onclick="game.selectHintOption('definition')">
+        <button class="hint-option-button" id="hintRevealDefinitionOption" onclick="if(window.game) window.game.selectHintOption('definition')">
             Show Definition
             <span class="hint-option-cost">1 hint</span>
         </button>
@@ -1752,14 +1752,16 @@
             addHintMenuHandler() {
                 if (!this.hintMenuHandler) {
                     this.hintMenuHandler = (e) => {
+                        // Don't close if clicking on the menu or its children
                         if (!e.target.closest('#hintOptionsMenu') && !e.target.closest('.cornerstone-word')) {
                             this.closeHintOptionsMenu();
                         }
                     };
                 }
+                // Use a longer timeout to ensure button handlers are set first
                 setTimeout(() => {
-                    document.addEventListener('click', this.hintMenuHandler);
-                }, 0);
+                    document.addEventListener('click', this.hintMenuHandler, true);
+                }, 100);
             }
             
             closeHintOptionsMenu() {
@@ -1851,6 +1853,7 @@
         let game;
         document.addEventListener('DOMContentLoaded', () => {
             game = new CornerstonesGame();
+            window.game = game; // Make game accessible globally
             
             // Show instructions for first-time users
             const hasPlayedBefore = localStorage.getItem('cornerstones_played');

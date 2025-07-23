@@ -2,8 +2,10 @@
 const fs = require('fs');
 
 // Load the word validator
-const WORDS_4PLUS = fs.readFileSync('./words_4plus.txt', 'utf8').split('\n').filter(w => w.length >= 4);
-const COMMON_WORDS_SET = new Set(require('./common-words.js').COMMON_WORDS_LIST.map(w => w.toLowerCase()));
+const wordsDatabase = require('../src/data/words-database-compact.js');
+const COMPREHENSIVE_WORD_SET = wordsDatabase.COMPREHENSIVE_WORD_SET || wordsDatabase.WORD_SET;
+const cornerstoneWords = require('../src/data/cornerstone-words.js');
+const CORNERSTONE_WORDS_SET = new Set(Object.keys(cornerstoneWords.CORNERSTONE_WORDS).map(w => w.toLowerCase()));
 
 // Puzzle configuration
 const HAMILTONIAN_PATHS = [
@@ -67,10 +69,10 @@ function findAllWords(grid) {
         visited[position] = true;
         const newWord = currentWord + grid[position];
         
-        if (newWord.length >= 4 && WORDS_4PLUS.includes(newWord.toLowerCase())) {
+        if (newWord.length >= 4 && COMPREHENSIVE_WORD_SET.has(newWord.toUpperCase())) {
             const upperWord = newWord.toUpperCase();
             allWords.add(upperWord);
-            if (COMMON_WORDS_SET.has(newWord.toLowerCase())) {
+            if (CORNERSTONE_WORDS_SET.has(newWord.toLowerCase())) {
                 cornerstoneWords.add(upperWord);
             }
         }

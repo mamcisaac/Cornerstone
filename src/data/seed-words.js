@@ -774,6 +774,11 @@ const SEED_WORDS = {
         word: "DESCRIPTIONS",
         definition: "Detailed accounts of characteristics or features"
     }
+,
+    "CONVERSATION": {
+        word: "CONVERSATION",
+        definition: "A talk between two or more people in which thoughts, feelings, and ideas are expressed"
+    }
 };
 
 // Export for use in the game

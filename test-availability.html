@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AVAILABILITY Puzzle</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .console-output { background: #f0f0f0; padding: 10px; border-radius: 5px; margin: 10px 0; white-space: pre-wrap; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>AVAILABILITY Puzzle Test</h1>
+    <div id="output"></div>
+    
+    <!-- Load the game files -->
+    <script src="src/data/words-database-compact.js"></script>
+    <script src="src/data/common-words.js"></script>
+    <script src="src/data/common-definitions.js"></script>
+    <script src="src/data/seed-words.js"></script>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `console-output ${type}`;
+            div.textContent = `${new Date().toISOString()}: ${message}`;
+            output.appendChild(div);
+            console.log(message);
+        }
+        
+        function testAvailabilityPuzzle() {
+            log('Starting AVAILABILITY puzzle test...');
+            
+            // Check if required data is loaded
+            if (!window.SEED_WORDS) {
+                log('ERROR: SEED_WORDS not loaded!', 'error');
+                return;
+            }
+            
+            if (!window.CORNERSTONE_WORDS_SET) {
+                log('ERROR: CORNERSTONE_WORDS_SET not loaded!', 'error');
+                return;
+            }
+            
+            if (!window.COMPREHENSIVE_WORD_SET) {
+                log('ERROR: COMPREHENSIVE_WORD_SET not loaded!', 'error');
+                return;
+            }
+            
+            log(`SEED_WORDS loaded: ${Object.keys(window.SEED_WORDS).length} puzzles`);
+            log(`CORNERSTONE_WORDS_SET loaded: ${window.CORNERSTONE_WORDS_SET.size} common words`);
+            log(`COMPREHENSIVE_WORD_SET loaded: ${window.COMPREHENSIVE_WORD_SET.size} total words`);
+            
+            // Check AVAILABILITY seed word
+            const availabilitySeed = window.SEED_WORDS.AVAILABILITY;
+            if (!availabilitySeed) {
+                log('ERROR: AVAILABILITY not found in SEED_WORDS!', 'error');
+                return;
+            }
+            
+            log(`AVAILABILITY seed: ${availabilitySeed.word} - ${availabilitySeed.definition}`, 'success');
+            
+            // Test if key words are in CORNERSTONE_WORDS_SET
+            const testWords = ['availability', 'ability', 'vital', 'available', 'avail', 'tail', 'bail', 'rail', 'lay', 'bay', 'bit', 'lit', 'til', 'ava', 'vial'];
+            
+            log('\\nTesting if expected cornerstone words are in CORNERSTONE_WORDS_SET:');
+            testWords.forEach(word => {
+                const isCommon = window.CORNERSTONE_WORDS_SET.has(word.toLowerCase());
+                log(`  ${word}: ${isCommon ? 'YES ✓' : 'NO ✗'}`, isCommon ? 'success' : 'error');
+            });
+            
+            // Check if these words have definitions
+            log('\\nChecking definitions for common words:');
+            testWords.forEach(word => {
+                if (window.CORNERSTONE_WORDS_SET.has(word.toLowerCase())) {
+                    const upperWord = word.toUpperCase();
+                    const hasDefinition = window.COMMON_DEFINITIONS && window.COMMON_DEFINITIONS[upperWord];
+                    log(`  ${word} definition: ${hasDefinition ? 'YES ✓' : 'NO - will use API'}`, hasDefinition ? 'success' : 'info');
+                }
+            });
+            
+            // Simulate grid generation for AVAILABILITY
+            log('\\nSimulating grid generation for AVAILABILITY...');
+            const seedWord = 'AVAILABILITY';
+            
+            // This would normally use the Hamiltonian path logic
+            // For testing, let's just create a simple grid
+            const testGrid = Array(16).fill('');
+            
+            // Place AVAILABILITY letters in a simple pattern
+            const letters = seedWord.split('');
+            for (let i = 0; i < Math.min(letters.length, 16); i++) {
+                testGrid[i] = letters[i];
+            }
+            
+            log(`Test grid created: ${testGrid.join('')}`);
+            log(`Grid positions filled: ${testGrid.filter(cell => cell !== '').length}/16`);
+            
+            // Test word finding (basic simulation)
+            log('\\nTesting word detection in grid...');
+            const foundTestWords = [];
+            testWords.forEach(word => {
+                if (window.COMPREHENSIVE_WORD_SET.has(word.toUpperCase())) {
+                    // Simple check if letters exist in grid (not path-based)
+                    const wordLetters = word.toUpperCase().split('');
+                    const gridLetters = testGrid.join('').split('');
+                    let canForm = true;
+                    
+                    wordLetters.forEach(letter => {
+                        const index = gridLetters.indexOf(letter);
+                        if (index === -1) {
+                            canForm = false;
+                        } else {
+                            gridLetters.splice(index, 1); // Remove used letter
+                        }
+                    });
+                    
+                    if (canForm) {
+                        foundTestWords.push(word);
+                        log(`  Can form: ${word} ✓`, 'success');
+                    } else {
+                        log(`  Cannot form: ${word} ✗`, 'error');
+                    }
+                }
+            });
+            
+            log(`\\nTotal words that can potentially be formed: ${foundTestWords.length}`);
+            
+            // Check which would be cornerstone words
+            const cornerstoneWords = foundTestWords.filter(word => 
+                window.CORNERSTONE_WORDS_SET.has(word.toLowerCase())
+            );
+            
+            log(`Potential cornerstone words: ${cornerstoneWords.length}`);
+            cornerstoneWords.forEach(word => {
+                log(`  ${word} (common word) ✓`, 'success');
+            });
+            
+            if (cornerstoneWords.length === 0) {
+                log('WARNING: No cornerstone words found! This explains the missing cornerstone words issue.', 'error');
+            }
+        }
+        
+        // Wait for all scripts to load, then run test
+        window.addEventListener('load', () => {
+            setTimeout(testAvailabilityPuzzle, 1000);
+        });
+    </script>
+</body>
+</html>

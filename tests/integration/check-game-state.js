@@ -27,8 +27,8 @@ async function checkGameState() {
             return {
                 gameExists: typeof window.game !== 'undefined',
                 gameStarted: window.game?.gameStarted,
-                commonWordsSetExists: typeof window.COMMON_WORDS_SET !== 'undefined',
-                commonWordsSize: window.COMMON_WORDS_SET?.size
+                commonWordsSetExists: typeof window.CORNERSTONE_WORDS_SET !== 'undefined',
+                commonWordsSize: window.CORNERSTONE_WORDS_SET?.size
             };
         });
         

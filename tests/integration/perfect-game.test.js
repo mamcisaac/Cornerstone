@@ -34,7 +34,7 @@ describe('Cornerstones Game - Perfect Game Tests', () => {
         
         // Wait for game to fully initialize
         await page.waitForFunction(
-            () => window.game && window.game.gameStarted && window.COMMON_WORDS_SET,
+            () => window.game && window.game.gameStarted && window.CORNERSTONE_WORDS_SET,
             { timeout: 10000 }
         );
     });
@@ -48,8 +48,8 @@ describe('Cornerstones Game - Perfect Game Tests', () => {
             const components = await page.evaluate(() => ({
                 game: !!window.game,
                 gameStarted: window.game?.gameStarted,
-                commonWordsSet: !!window.COMMON_WORDS_SET,
-                commonWordsSize: window.COMMON_WORDS_SET?.size,
+                commonWordsSet: !!window.CORNERSTONE_WORDS_SET,
+                commonWordsSize: window.CORNERSTONE_WORDS_SET?.size,
                 wordDatabase: !!window.COMPREHENSIVE_WORD_SET,
                 wordDatabaseSize: window.COMPREHENSIVE_WORD_SET?.size
             }));

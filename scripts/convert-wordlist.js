@@ -1,10 +1,14 @@
 const fs = require('fs');
 
-// Read the word list
-const words = fs.readFileSync('words_4plus.txt', 'utf8')
-    .trim()
-    .split('\n')
-    .map(word => word.toUpperCase());
+// Read words from the JSON dictionary
+const dictionaryContent = fs.readFileSync('../src/data/words_dictionary.json', 'utf8');
+const dictionary = JSON.parse(dictionaryContent);
+
+// Get all words that are 4+ letters
+const words = Object.keys(dictionary)
+    .filter(word => word.length >= 4)
+    .map(word => word.toUpperCase())
+    .sort();
 
 // Create JavaScript content
 const jsContent = `// Comprehensive English word list for validation (4+ letters)
@@ -29,5 +33,5 @@ if (typeof module !== 'undefined' && module.exports) {
 `;
 
 // Write to file
-fs.writeFileSync('words-database.js', jsContent);
+fs.writeFileSync('../src/data/words-database.js', jsContent);
 console.log(`Created words-database.js with ${words.length} words`);

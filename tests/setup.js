@@ -17,7 +17,7 @@ global.COMPREHENSIVE_WORD_SET = new Set([
   'TEST', 'WORD', 'GAME', 'CORNER', 'STONE', 'NEST', 'REST'
 ]);
 
-global.COMMON_WORDS_SET = new Set([
+global.CORNERSTONE_WORDS_SET = new Set([
   'test', 'word', 'game', 'corner', 'stone'
 ]);
 

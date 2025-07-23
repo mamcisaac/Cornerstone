@@ -152,15 +152,15 @@ export class CornerstonesGame {
         this.wordFinder.wordSet = window.COMPREHENSIVE_WORD_SET;
         this.allPossibleWords = this.wordFinder.findAllWords(this.grid);
         
-        // Ensure COMMON_WORDS_SET is loaded
-        if (!window.COMMON_WORDS_SET) {
-            logger.error('COMMON_WORDS_SET not loaded! Game cannot determine cornerstone words.');
+        // Ensure CORNERSTONE_WORDS_SET is loaded
+        if (!window.CORNERSTONE_WORDS_SET) {
+            logger.error('CORNERSTONE_WORDS_SET not loaded! Game cannot determine cornerstone words.');
             showMessage('Error loading word database. Please refresh the page.', 'error');
             return;
         }
         
         logger.info(`Found ${this.allPossibleWords.size} total possible words`);
-        logger.info(`COMMON_WORDS_SET size: ${window.COMMON_WORDS_SET.size}`);
+        logger.info(`CORNERSTONE_WORDS_SET size: ${window.CORNERSTONE_WORDS_SET.size}`);
         
         // Classify words as cornerstone or valid
         this.allPossibleWords.forEach(word => {
@@ -174,8 +174,8 @@ export class CornerstonesGame {
             };
             
             // Only common words qualify as cornerstone words
-            // COMMON_WORDS_SET contains lowercase words, so we need to check lowercase
-            const isCommon = window.COMMON_WORDS_SET.has(word.toLowerCase());
+            // CORNERSTONE_WORDS_SET contains lowercase words, so we need to check lowercase
+            const isCommon = window.CORNERSTONE_WORDS_SET.has(word.toLowerCase());
             
             if (isCommon) {
                 this.cornerstoneWords.push(wordData);
@@ -599,7 +599,8 @@ export class CornerstonesGame {
         const totalPossible = this.allPossibleWords.size;
         
         // Update all stats displays to ensure consistency
-        updateStats(totalFound, cornerstoneFound, totalPossible, this.hintSystem.availableHints);
+        // UI should show: total found words, total cornerstone words available, total possible words
+        updateStats(totalFound, totalCornerstone, totalPossible, this.hintSystem.availableHints);
         updateCornerstoneProgress(cornerstoneFound, totalCornerstone);
         
         // Log for debugging if there's a mismatch

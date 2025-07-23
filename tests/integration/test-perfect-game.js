@@ -19,7 +19,7 @@ async function testGame() {
             console.error('Browser Error:', text);
         } else if (type === 'warning') {
             console.warn('Browser Warning:', text);
-        } else if (text.includes('Found') || text.includes('COMMON_WORDS_SET') || text.includes('cornerstone')) {
+        } else if (text.includes('Found') || text.includes('CORNERSTONE_WORDS_SET') || text.includes('cornerstone')) {
             console.log('Browser Log:', text);
         }
     });
@@ -44,18 +44,18 @@ async function testGame() {
         
         // Wait for game object to be ready
         await page.waitForFunction(
-            () => window.game && window.game.gameStarted && window.COMMON_WORDS_SET,
+            () => window.game && window.game.gameStarted && window.CORNERSTONE_WORDS_SET,
             { timeout: 15000 }
         );
         
         console.log('✅ Game loaded successfully\n');
         
-        // Test 1: Check if COMMON_WORDS_SET is loaded
+        // Test 1: Check if CORNERSTONE_WORDS_SET is loaded
         const commonWordsInfo = await page.evaluate(() => {
             return {
-                loaded: !!window.COMMON_WORDS_SET,
-                size: window.COMMON_WORDS_SET ? window.COMMON_WORDS_SET.size : 0,
-                sampleWords: window.COMMON_WORDS_SET ? Array.from(window.COMMON_WORDS_SET).slice(0, 10) : []
+                loaded: !!window.CORNERSTONE_WORDS_SET,
+                size: window.CORNERSTONE_WORDS_SET ? window.CORNERSTONE_WORDS_SET.size : 0,
+                sampleWords: window.CORNERSTONE_WORDS_SET ? Array.from(window.CORNERSTONE_WORDS_SET).slice(0, 10) : []
             };
         });
         

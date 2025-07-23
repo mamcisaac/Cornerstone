@@ -2,15 +2,12 @@
 const fs = require('fs');
 
 // Load common words
-const { COMMON_WORDS_LIST } = require('./common-words.js');
+const { COMMON_WORDS_LIST } = require('../src/data/cornerstone-words.js');
 const COMMON_WORDS_SET = new Set(COMMON_WORDS_LIST.map(w => w.toLowerCase()));
 
 // Load all valid words
-const WORDS_4PLUS = fs.readFileSync('./words_4plus.txt', 'utf8')
-    .split('\n')
-    .map(w => w.trim().toLowerCase())
-    .filter(w => w.length >= 4);
-const VALID_WORDS_SET = new Set(WORDS_4PLUS);
+const { WORDS_ARRAY } = require('../src/data/words-database-compact.js');
+const VALID_WORDS_SET = new Set(WORDS_ARRAY.map(w => w.toLowerCase()));
 
 // Puzzle configuration
 const HAMILTONIAN_PATHS = [

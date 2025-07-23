@@ -18,15 +18,15 @@ export const HAMILTONIAN_PATHS = [
 
 export const SAMPLE_PUZZLES = {
     "CORNERSTONES": { seedWord: "CORNERSTONES", pathIndex: 0 },
-    "AVAILABILITY": { seedWord: "AVAILABILITY", pathIndex: 1 },
     "EXPERIMENTAL": { seedWord: "EXPERIMENTAL", pathIndex: 2 },
     "TECHNOLOGIES": { seedWord: "TECHNOLOGIES", pathIndex: 3 },
-    "CHAMPIONSHIP": { seedWord: "CHAMPIONSHIP", pathIndex: 4 },
-    "UNIVERSITIES": { seedWord: "UNIVERSITIES", pathIndex: 5 },
-    "NEIGHBORHOOD": { seedWord: "NEIGHBORHOOD", pathIndex: 6 },
+    "BREAKTHROUGH": { seedWord: "BREAKTHROUGH", pathIndex: 9 },
     "THANKSGIVING": { seedWord: "THANKSGIVING", pathIndex: 7 },
-    "ENCYCLOPEDIA": { seedWord: "ENCYCLOPEDIA", pathIndex: 8 },
-    "BREAKTHROUGH": { seedWord: "BREAKTHROUGH", pathIndex: 9 }
+    "ENCYCLOPEDIA": { seedWord: "ENCYCLOPEDIA", pathIndex: 2 },
+    "UNIVERSITIES": { seedWord: "UNIVERSITIES", pathIndex: 9 },
+    "DEVELOPMENTS": { seedWord: "DEVELOPMENTS", pathIndex: 2 },
+    "RELATIONSHIP": { seedWord: "RELATIONSHIP", pathIndex: 0 },
+    "CONVERSATION": { seedWord: "CONVERSATION", pathIndex: 3 }
 };
 
 export const ADJACENCY = {

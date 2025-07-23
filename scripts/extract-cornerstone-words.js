@@ -45,7 +45,7 @@ const ADJACENCY = {
 // Mock the word validation sets for this analysis
 // In the actual game, these are loaded from external files
 const COMPREHENSIVE_WORD_SET = new Set(); // Would be loaded from words-database-compact.js
-const COMMON_WORDS_SET = new Set(); // Would be loaded from common-words.js
+const CORNERSTONE_WORDS_SET = new Set(); // Would be loaded from cornerstone-words.js
 
 // For this extraction, we'll collect the theoretical cornerstone words
 // based on the algorithm without actually validating them
@@ -98,7 +98,7 @@ function findAllPossiblePaths(grid) {
 // Process each puzzle
 console.log('Analyzing all 10 puzzles from index.html...\n');
 console.log('Note: This shows all possible word patterns. In the actual game,');
-console.log('only words that exist in the word database and are common (top 10,000)');
+console.log('only words that exist in the word database and are in the cornerstone words list');
 console.log('would be marked as cornerstone words.\n');
 
 const allPuzzleData = [];
@@ -146,6 +146,6 @@ console.log('===============');
 console.log('In the actual game, cornerstone words are determined by:');
 console.log('1. Finding all valid 4+ letter words that can be formed by connecting adjacent letters');
 console.log('2. Checking if those words exist in the comprehensive word database');
-console.log('3. Marking as "cornerstone" only those that are in the top 10,000 most common English words');
+console.log('3. Marking as "cornerstone" only those that are in the cornerstone words list');
 console.log('\nWithout access to the word databases, we cannot determine the exact cornerstone words,');
 console.log('but the above analysis shows all possible word patterns that could be formed in each puzzle.');

@@ -1189,7 +1189,7 @@
             <p>Two ways to form words:</p>
             <ul>
                 <li><strong>Mouse:</strong> Click and drag to select letters</li>
-                <li><strong>Keyboard:</strong> Use arrow keys to navigate, Space to add letters, Enter to submit</li>
+                <li><strong>Keyboard:</strong> Arrow keys to navigate, Space to add letters, Enter to submit, Escape to clear</li>
             </ul>
         </div>
 
@@ -1454,10 +1454,19 @@
             }
 
             handleKeyDown(e) {
-                // Only handle keyboard navigation when focus is on grid cells
-                if (!e.target.classList.contains('cell')) return;
+                // Handle arrow keys globally - if not on a cell, start from center
+                let currentIndex;
+                if (e.target.classList.contains('cell')) {
+                    currentIndex = parseInt(e.target.dataset.index);
+                } else {
+                    // If arrow key pressed but not focused on a cell, start from center (index 5 or 6)
+                    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                        currentIndex = 5; // Good starting position
+                    } else {
+                        return; // Only handle arrow keys when not focused on grid
+                    }
+                }
                 
-                const currentIndex = parseInt(e.target.dataset.index);
                 let newIndex = currentIndex;
                 
                 switch (e.key) {
@@ -1475,25 +1484,27 @@
                         break;
                     case ' ':
                     case 'Spacebar':
-                        // Add current cell to selection
-                        if (this.selectedPath.length === 0) {
-                            this.selectedPath = [currentIndex];
-                            this.updateSelection();
-                        } else if (!this.selectedPath.includes(currentIndex) && 
-                                 this.isAdjacent(this.selectedPath[this.selectedPath.length - 1], currentIndex)) {
-                            this.addToPath(currentIndex);
+                        // Add current cell to selection (only if we have a focused cell)
+                        if (e.target.classList.contains('cell')) {
+                            if (this.selectedPath.length === 0) {
+                                this.selectedPath = [currentIndex];
+                                this.updateSelection();
+                            } else if (!this.selectedPath.includes(currentIndex) && 
+                                     this.isAdjacent(this.selectedPath[this.selectedPath.length - 1], currentIndex)) {
+                                this.addToPath(currentIndex);
+                            }
                         }
                         e.preventDefault();
                         return;
                     case 'Enter':
-                        // Submit current word
+                        // Submit current word (works globally)
                         if (this.selectedPath.length > 0) {
                             this.submitCurrentWord();
                         }
                         e.preventDefault();
                         return;
                     case 'Escape':
-                        // Clear selection
+                        // Clear selection (works globally)
                         this.clearSelection();
                         e.preventDefault();
                         return;

@@ -1,0 +1,25 @@
+{
+  "batch": {
+    "startIndex": 200,
+    "endIndex": 207,
+    "size": 8
+  },
+  "enhanced": {
+    "TORES": "The surface described by the circumference of a circle revolving about a straight line in its own plane.",
+    "TORN": "To rend (a solid material) by holding or restraining in two places and pulling apart, whether intentionally or not; to destroy or separate.",
+    "TOSS": "A throw, a lob, of a ball etc., with an initial upward direction, particularly with a lack of care.",
+    "TOSSER": "One who tosses or throws something.",
+    "TRES": "A three-course stringed instrument similar to a guitar; the Cuban variant has six strings, and the Puerto Rican has nine.",
+    "TRESS": "A braid, knot, or curl, of hair; a ringlet."
+  },
+  "failed": [
+    "TRERON",
+    "TRESSON"
+  ],
+  "summary": {
+    "processed": 8,
+    "enhanced": 6,
+    "failed": 2,
+    "successRate": "75%"
+  }
+}

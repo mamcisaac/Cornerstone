@@ -48,7 +48,7 @@
             max-width: 1400px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 1fr minmax(280px, 32%);
+            grid-template-columns: 1fr minmax(320px, 40%);
             gap: 24px;
             align-items: start;
         }
@@ -67,7 +67,7 @@
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            width: 350px;
+            width: 420px;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -372,6 +372,9 @@
 
         .cornerstone-section {
             margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         .cornerstone-section h3 {
@@ -564,6 +567,23 @@
             margin-top: 20px;
         }
 
+        /* Sticky hint section that stays at bottom */
+        .hint-section-sticky {
+            position: sticky;
+            bottom: 0;
+            background: var(--cs-background);
+            border-top: 2px solid #e2e8f0;
+            padding: 15px 20px;
+            margin-top: auto;
+            z-index: 10;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .hint-section-sticky .hint-header h4 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+
         .hint-header {
             display: flex;
             justify-content: space-between;
@@ -707,95 +727,33 @@
             display: block;
         }
 
-        /* Hint Options Menu Styles */
-        .hint-options-menu {
-            position: fixed;
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            z-index: 1001;
-            display: none;
-            min-width: 200px;
-        }
-
-        .hint-options-menu.show {
-            display: block;
-        }
-
-        .hint-options-menu h4 {
-            margin: 0 0 10px 0;
-            color: #333;
-            font-size: 1.1em;
-        }
-
-        .hint-option-button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: left;
-            transition: all 0.2s;
-        }
-
-        .hint-option-button:hover {
-            background: #5a67d8;
-            transform: translateX(5px);
-        }
-
-        .hint-option-button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        
-
-        .hint-option-cost {
-            float: right;
-            font-size: 0.9em;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
+        /* Clickable hint styles */
         .cornerstone-word.clickable-hint {
             cursor: pointer;
             transition: all 0.2s;
-        }
-
-        .cornerstone-word.clickable-hint:hover {
-            background: #e6f3ff;
-            transform: translateX(5px);
+            border-left: 3px solid var(--cs-primary);
+            padding-left: 12px;
         }
         
+        .cornerstone-word.clickable-hint:hover {
+            background: var(--cs-background-soft);
+            transform: translateX(5px);
+        }
+
         .clickable-letter-global {
             cursor: pointer;
-            padding: 2px 4px;
-            margin: 0 1px;
-            border-radius: 3px;
             transition: all 0.2s;
-            background: transparent;
-            border: 1px solid transparent;
         }
         
         .clickable-letter-global:hover {
             background: #e6f3ff;
-            transform: translateY(-2px);
-            border: 1px solid #667eea;
+            border-radius: 3px;
+            outline: 1px solid #667eea;
         }
         
         .revealed-letter-global {
-            padding: 2px 4px;
-            margin: 0 1px;
-            border-radius: 3px;
             background: #f8f8f8;
             color: #666;
-            border: 1px solid #ddd;
         }
 
         .help-button {
@@ -1029,7 +987,7 @@
         <div class="game-container tab-content active" id="game-tab">
             <div class="header">
                 <h1 class="title">Cornerstones</h1>
-                <p class="subtitle">Discover **all** cornerstone words to complete the puzzle</p>
+                <p class="subtitle">Discover all cornerstone words to complete the puzzle</p>
                 <button class="help-button" onclick="game.showInstructions()" title="How to play">?</button>
             </div>
 
@@ -1104,22 +1062,23 @@
                     </div>
                     <!-- Cornerstone words will be populated here -->
                 </div>
-            </div>
-
-            <div class="hint-section">
-                <div class="hint-header">
-                    <h3>Hints</h3>
-                    <span class="hint-count" id="hintCount">0 Available</span>
-                </div>
-                <div class="hint-actions">
-                    <button class="hint-button" id="revealLetterBtn" onclick="game.useHintRevealLetter()">
-                        <span>Reveal Letter</span>
-                        <span class="hint-cost">1 hint</span>
-                    </button>
-                    <button class="hint-button" id="showDefinitionBtn" onclick="game.useHintShowDefinition()">
-                        <span>Show Definition</span>
-                        <span class="hint-cost">1 hint</span>
-                    </button>
+                
+                <!-- Sticky hint section at bottom -->
+                <div class="hint-section-sticky">
+                    <div class="hint-header">
+                        <h4>Hints</h4>
+                        <span class="hint-count" id="hintCount">0 Available</span>
+                    </div>
+                    <div class="hint-actions">
+                        <button class="hint-button" id="revealLetterBtn" onclick="game.useHintRevealLetter()">
+                            <span>Reveal Letter</span>
+                            <span class="hint-cost">1 hint</span>
+                        </button>
+                        <button class="hint-button" id="showDefinitionBtn" onclick="game.useHintShowDefinition()">
+                            <span>Show Definition</span>
+                            <span class="hint-cost">1 hint</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1133,17 +1092,6 @@
         <button class="close-btn" onclick="game.closeDefinition()">Close</button>
     </div>
 
-    <div class="hint-options-menu" id="hintOptionsMenu">
-        <h4>Choose Hint Type</h4>
-        <button class="hint-option-button" id="hintRevealLetterOption" onclick="if(window.game) window.game.selectHintOption('letter')">
-            Reveal a Letter
-            <span class="hint-option-cost">1 hint</span>
-        </button>
-        <button class="hint-option-button" id="hintRevealDefinitionOption" onclick="if(window.game) window.game.selectHintOption('definition')">
-            Show Definition
-            <span class="hint-option-cost">1 hint</span>
-        </button>
-    </div>
 
     <div class="instructions-popup" id="instructionsPopup">
         <button class="instructions-close-x" onclick="game.closeInstructions()" aria-label="Close">×</button>
@@ -1236,11 +1184,11 @@
         ];
         const SAMPLE_PUZZLES = {
             "CORNERSTONES": { seedWord: "CORNERSTONES", pathIndex: 0 },
-            "ARCHITECTURE": { seedWord: "ARCHITECTURE", pathIndex: 1 },
+            "AVAILABILITY": { seedWord: "AVAILABILITY", pathIndex: 1 },
             "EXPERIMENTAL": { seedWord: "EXPERIMENTAL", pathIndex: 2 },
             "TECHNOLOGIES": { seedWord: "TECHNOLOGIES", pathIndex: 3 },
             "CHAMPIONSHIP": { seedWord: "CHAMPIONSHIP", pathIndex: 4 },
-            "INTELLIGENCE": { seedWord: "INTELLIGENCE", pathIndex: 5 },
+            "UNIVERSITIES": { seedWord: "UNIVERSITIES", pathIndex: 5 },
             "NEIGHBORHOOD": { seedWord: "NEIGHBORHOOD", pathIndex: 6 },
             "THANKSGIVING": { seedWord: "THANKSGIVING", pathIndex: 7 },
             "ENCYCLOPEDIA": { seedWord: "ENCYCLOPEDIA", pathIndex: 8 },
@@ -1277,8 +1225,6 @@
                 this.letterSelectionWord = null;
                 this.definitionRevealMode = false;
                 this.cancelHandler = null;
-                this.selectedHintWord = null;
-                this.hintMenuHandler = null;
                 this.isDragging = false;
                 this.touchStartTime = 0;
                 
@@ -1405,13 +1351,11 @@
                         revealed: null,
                         pattern: null,
                         showDefinition: false,
-                        definition: word === currentSeedWord && SEED_WORDS[currentSeedWord] 
-                            ? SEED_WORDS[currentSeedWord].definition 
-                            : getDefinition(word)
+                        definition: "Loading definition..." // Will be populated async
                     };
                     
-                    // Seed word is always a cornerstone word for its puzzle
-                    if (word === currentSeedWord || COMMON_WORDS_SET.has(word.toLowerCase())) {
+                    // Only common words qualify as cornerstone words
+                    if (COMMON_WORDS_SET.has(word.toLowerCase())) {
                         this.cornerstoneWords.push(wordData);
                     } else {
                         this.validWords.push(word);
@@ -1419,6 +1363,53 @@
                 });
                 
                 console.log(`Found ${this.cornerstoneWords.length} cornerstone words and ${this.validWords.length} other valid words`);
+                
+                // Fetch definitions asynchronously
+                this.fetchAllDefinitions();
+            }
+
+            async fetchAllDefinitions() {
+                console.log('Fetching definitions for all words...');
+                
+                // Fetch definitions for cornerstone words (with LLM enhancement)
+                const cornerstonePromises = this.cornerstoneWords.map(async (wordData) => {
+                    try {
+                        // Check if it's a seed word first
+                        if (SEED_WORDS[wordData.word]) {
+                            wordData.definition = SEED_WORDS[wordData.word].definition;
+                        } else {
+                            wordData.definition = await getDefinition(wordData.word, true); // true = isCornerstone
+                        }
+                    } catch (error) {
+                        console.warn(`Failed to fetch definition for cornerstone word "${wordData.word}":`, error);
+                        wordData.definition = "A common English word";
+                    }
+                });
+
+                // Fetch definitions for all valid words  
+                const validWordPromises = this.validWords.map(async (word) => {
+                    try {
+                        const definition = await getDefinition(word, false);
+                        // Store in a map for quick lookup when showing definitions
+                        if (!this.wordDefinitions) {
+                            this.wordDefinitions = new Map();
+                        }
+                        this.wordDefinitions.set(word.toUpperCase(), definition);
+                    } catch (error) {
+                        console.warn(`Failed to fetch definition for word "${word}":`, error);
+                        if (!this.wordDefinitions) {
+                            this.wordDefinitions = new Map();
+                        }
+                        this.wordDefinitions.set(word.toUpperCase(), "A common English word");
+                    }
+                });
+
+                // Wait for all definitions to be fetched
+                await Promise.all([...cornerstonePromises, ...validWordPromises]);
+                
+                // Update the display once all definitions are loaded
+                this.updateCornerstoneDisplay();
+                console.log('All definitions loaded successfully');
             }
 
             dfsWordSearch(position, currentWord, path, visited) {
@@ -1784,7 +1775,19 @@
                 document.getElementById('popupType').textContent = isCornerstone ? 'Cornerstone Word!' : 'Valid Word';
                 document.getElementById('popupType').className = `popup-type ${isCornerstone ? 'cornerstone' : ''}`;
                 
-                const definition = getDefinition(word);
+                let definition;
+                if (isCornerstone) {
+                    // Find the cornerstone word data
+                    const wordData = this.cornerstoneWords.find(w => w.word === word);
+                    definition = wordData ? wordData.definition : "A common English word";
+                } else {
+                    // Look up in the valid words definitions map
+                    definition = this.wordDefinitions ? this.wordDefinitions.get(word.toUpperCase()) : "A common English word";
+                    if (!definition) {
+                        definition = "A common English word";
+                    }
+                }
+                
                 document.getElementById('popupDefinition').textContent = definition;
                 
                 document.getElementById('overlay').classList.add('show');
@@ -1954,13 +1957,6 @@
                             wordEl.classList.add('clickable-hint');
                             wordEl.onclick = () => this.revealDefinitionForWord(wordData);
                         }
-                    } else {
-                        // Default mode - unrevealed words are clickable if player has hints
-                        if (!wordData.found && this.hintSystem.availableHints > 0) {
-                            // Allow clicking even if definition is shown (user might want to reveal letters)
-                            wordEl.classList.add('clickable-hint');
-                            wordEl.onclick = (e) => this.showHintOptionsMenu(wordData, e);
-                        }
                     }
                     
                     wordsContainer.appendChild(wordEl);
@@ -2060,10 +2056,10 @@
                 // Add click handler to cancel letter selection when clicking elsewhere
                 if (!this.cancelHandler) {
                     this.cancelHandler = (e) => {
-                        // Don't cancel if clicking on cornerstone words, hint buttons, or hint menu
-                        if (!e.target.closest('.cornerstone-word') && 
+                        // Don't cancel if clicking on clickable letters, hint buttons, or cornerstone words in definition mode
+                        if (!e.target.closest('.clickable-letter-global') && 
                             !e.target.closest('.hint-button') &&
-                            !e.target.closest('#hintOptionsMenu')) {
+                            !(this.definitionRevealMode && e.target.closest('.cornerstone-word'))) {
                             this.cancelLetterSelection();
                         }
                     };
@@ -2175,7 +2171,7 @@
             }
 
             async switchPuzzle() {
-                this.currentPuzzle = this.currentPuzzle === "CORNERSTONES" ? "ARCHITECTURE" : "CORNERSTONES";
+                this.currentPuzzle = this.currentPuzzle === "CORNERSTONES" ? "AVAILABILITY" : "CORNERSTONES";
                 this.foundWords.clear();
                 this.hintSystem = new HintSystem();
                 this.generatePuzzle();
@@ -2194,7 +2190,6 @@
                 this.letterSelectionWord = null;
                 this.definitionRevealMode = false;
                 this.removeCancelHandler(); // Remove cancel handler
-                this.closeHintOptionsMenu(); // Close hint menu if open
                 this.cornerstoneWords.forEach(w => {
                     w.found = false;
                     w.revealed = null;
@@ -2221,108 +2216,6 @@
                 localStorage.setItem('cornerstonesProgress', JSON.stringify(progress));
             }
 
-            showHintOptionsMenu(wordData, event) {
-                event.stopPropagation();
-                this.selectedHintWord = wordData;
-                
-                const menu = document.getElementById('hintOptionsMenu');
-                const rect = event.target.getBoundingClientRect();
-                
-                // Show the menu first to get accurate dimensions
-                menu.classList.add('show');
-                
-                // Disable definition button if definition is already shown
-                const definitionBtn = document.getElementById('hintRevealDefinitionOption');
-                if (wordData.showDefinition) {
-                    definitionBtn.disabled = true;
-                    definitionBtn.style.opacity = '0.5';
-                    definitionBtn.style.cursor = 'not-allowed';
-                } else {
-                    definitionBtn.disabled = false;
-                    definitionBtn.style.opacity = '1';
-                    definitionBtn.style.cursor = 'pointer';
-                }
-                
-                // Position the menu near the clicked word
-                menu.style.left = rect.left + 'px';
-                menu.style.top = (rect.bottom + 10) + 'px';
-                
-                // Adjust if menu goes off screen
-                setTimeout(() => {
-                    const menuRect = menu.getBoundingClientRect();
-                    if (menuRect.right > window.innerWidth) {
-                        menu.style.left = (window.innerWidth - menuRect.width - 20) + 'px';
-                    }
-                    if (menuRect.bottom > window.innerHeight) {
-                        menu.style.top = (rect.top - menu.offsetHeight - 10) + 'px';
-                    }
-                }, 0);
-                
-                // Add click handler to close menu when clicking elsewhere
-                this.addHintMenuHandler();
-            }
-            
-            addHintMenuHandler() {
-                if (!this.hintMenuHandler) {
-                    this.hintMenuHandler = (e) => {
-                        // Don't close if clicking on the menu or its children
-                        if (!e.target.closest('#hintOptionsMenu') && !e.target.closest('.cornerstone-word')) {
-                            this.closeHintOptionsMenu();
-                        }
-                    };
-                }
-                // Use a longer timeout to ensure button handlers are set first
-                setTimeout(() => {
-                    document.addEventListener('click', this.hintMenuHandler, true);
-                }, 100);
-            }
-            
-            closeHintOptionsMenu() {
-                document.getElementById('hintOptionsMenu').classList.remove('show');
-                if (this.hintMenuHandler) {
-                    document.removeEventListener('click', this.hintMenuHandler);
-                }
-                this.selectedHintWord = null;
-            }
-            
-            selectHintOption(optionType) {
-                console.log('selectHintOption called with:', optionType, this.selectedHintWord);
-                
-                if (!this.selectedHintWord) {
-                    console.log('No selected hint word!');
-                    return;
-                }
-                
-                // Store the selected word before closing menu
-                const wordData = this.selectedHintWord;
-                this.closeHintOptionsMenu();
-                
-                // Check if player has enough hints
-                if (!this.hintSystem.canUseHint(1)) {
-                    this.showMessage('Not enough hints!', 'error');
-                    return;
-                }
-                
-                if (optionType === 'letter') {
-                    // Enter global letter reveal mode - all letters in all words become clickable
-                    this.globalLetterRevealMode = true;
-                    this.letterSelectionWord = null; // Clear any specific word selection
-                    
-                    // Initialize revealed arrays for all words if needed
-                    this.cornerstoneWords.forEach(word => {
-                        if (!word.found && !word.revealed) {
-                            word.revealed = new Array(word.word.length).fill(false);
-                        }
-                    });
-                    
-                    this.showMessage('Click on any letter position in any word to reveal it!', 'success');
-                    this.updateCornerstoneDisplay();
-                    this.addCancelHandler();
-                } else if (optionType === 'definition') {
-                    // Reveal definition for this word
-                    this.revealDefinitionForWord(wordData);
-                }
-            }
 
             async loadProgress() {
                 const saved = localStorage.getItem('cornerstonesProgress');

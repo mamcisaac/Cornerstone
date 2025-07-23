@@ -1,0 +1,19 @@
+/* CSS Variables for Type Scale and Design Tokens */
+:root {
+    --font-size-32: 2rem;
+    --font-size-24: 1.5rem;
+    --font-size-18: 1.125rem;
+    --font-size-16: 1rem;
+    --font-size-14: 0.875rem;
+    --font-size-12: 0.75rem;
+    
+    /* Color tokens for improved contrast and consistency */
+    --cs-neutral-dark: #212121;
+    --cs-neutral-medium: #666666;
+    --cs-neutral-light: #9ca3af;
+    --cs-success: #12b76a;
+    --cs-primary: #667eea;
+    --cs-accent: #2b63d4;
+    --cs-background: #ffffff;
+    --cs-background-soft: #f8f9fa;
+}

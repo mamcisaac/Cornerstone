@@ -1,153 +1,104 @@
-# Cornerstones - Daily Word Puzzle Game
+# Cornerstones - Word Puzzle Game
 
-A challenging word puzzle game where you find 4+ letter words in a cross-shaped grid. Each puzzle is generated from a 12-letter seed word placed along a Hamiltonian path.
-
-## 🎮 Play Now
-
-**[Play Cornerstones](https://mamcisaac.github.io/Cornerstone)**
+A web-based word puzzle game where players find words by connecting adjacent letters in a cross-shaped grid.
 
 ## 🎯 How to Play
 
-### Grid Layout
-The game uses a unique cross-shaped grid with 12 playable cells:
+1. **Objective**: Find all the cornerstone words hidden in the letter grid
+2. **Word Formation**: Connect adjacent letters (including diagonally) to form words
+3. **Minimum Length**: Words must be at least 4 letters long
+4. **Completion**: Discover every cornerstone word to complete the puzzle
+
+## 🎮 Controls
+
+- **Mouse/Trackpad**: Click and drag to select letters
+- **Keyboard**: Use arrow keys to navigate, Space to select/deselect, Enter to submit
+- **Touch**: Tap and drag across letters on mobile devices
+
+## 🏗️ Project Structure
+
 ```
-    [·] [·] [·] [·]
-    [·] --- --- [·]  
-    [·] --- --- [·]
-    [·] [·] [·] [·]
+cornerstone/
+├── src/                    # Main source code
+│   ├── index.html         # Main game file
+│   ├── css/               # Stylesheets
+│   │   ├── variables.css  # CSS custom properties
+│   │   ├── main.css       # Main styles
+│   │   └── animations.css # Animation keyframes
+│   ├── js/                # JavaScript modules
+│   │   ├── constants.js   # Game constants
+│   │   ├── ui.js          # UI utilities
+│   │   ├── wordFinder.js  # Word finding logic
+│   │   └── game.js        # Main game class
+│   └── data/              # Game data files
+│       ├── words-database.js
+│       ├── common-definitions.js
+│       └── seed-words.js
+├── scripts/               # Utility scripts
+│   └── definition-fetcher.js  # Consolidated definition fetcher
+├── tests/                 # Test files
+├── archive/               # Archived/deprecated files
+└── docs/                  # Documentation
 ```
-The corners are empty, leaving 12 cells arranged in a cross pattern.
 
-### Rules
-1. **Find Words**: Click and drag to select adjacent letters (including diagonals)
-2. **Minimum Length**: Words must be 4+ letters long
-3. **Valid Paths**: Each letter can only be used once per word
-4. **Adjacent Cells**: Letters must be touching (including diagonally)
-5. **Real Words**: Only valid English words with definitions are accepted
+## 🚀 Getting Started
 
-### Scoring
-- **Simple System**: 1 point per letter in each word
-- **4-letter word** = 4 points
-- **5-letter word** = 5 points
-- **Longer words** = more points!
+1. **Local Development**: Simply open `src/index.html` in a web browser
+2. **Web Server**: Serve the `src/` directory with any web server
 
-## 🧩 Game Features
+## 🛠️ Development Tools
 
-### Two Sample Puzzles
-- **CORNERSTONES**: Features words like CORNER, STONE, STORE, NOTES, STERN
-- **ARCHITECTURE**: Contains ARCH, TEACH, REACH, CREATURE, HEART
-- Switch between puzzles using the "Switch Puzzle" button
+### Definition Fetcher
 
-### Interactive Elements  
-- **Drag Selection**: Click and drag across letters to form words
-- **Definition Popup**: Click any found word to see its definition
-- **Progress Tracking**: See how many words you've found vs. total possible
-- **Auto-Save**: Your progress is automatically saved in your browser
+The consolidated definition fetcher supports multiple modes:
 
-### Educational Value
-Every word comes with a proper definition that doesn't use the root word:
-- ❌ Bad: "CORNERS - Plural of corner" 
-- ✅ Good: "CORNERS - Angular meeting points where surfaces intersect"
+```bash
+# Fetch definitions for all puzzles
+node scripts/definition-fetcher.js --all-puzzles --verbose
 
-## 🔧 Technical Details
+# Fetch for specific puzzle
+node scripts/definition-fetcher.js --single-puzzle --puzzle CORNERSTONES
 
-### Hamiltonian Paths
-Each puzzle uses a Hamiltonian path - a route that visits every cell exactly once. This ensures:
-- Interesting letter arrangements
-- Consistent puzzle generation  
-- Good word distribution across the grid
+# Find and fill missing definitions
+node scripts/definition-fetcher.js --missing-only
 
-### Word Discovery Algorithm
-The game uses depth-first search to find all possible words:
-1. Start from each cell
-2. Follow adjacent paths (including diagonals)
-3. Check each 4+ letter combination against the dictionary
-4. Pre-compute all valid words for instant validation
+# Validate existing definitions
+node scripts/definition-fetcher.js --validate
+```
 
-### No Backend Required
-- **Pure JavaScript**: Runs entirely in your browser
-- **No Server**: Hosted on GitHub Pages for free
-- **Works Offline**: All game logic is client-side
-- **Cross-Platform**: Works on desktop and mobile
+## 🎲 Available Puzzles
 
-## 🚀 Installation & Development
-
-### Quick Start
-1. Clone this repository
-2. Open `index.html` in your browser
-3. Start playing immediately!
-
-### Hosting Your Own
-1. Fork this repository
-2. Enable GitHub Pages in Settings → Pages
-3. Select "Deploy from a branch" → main
-4. Your game will be available at `yourusername.github.io/Cornerstone`
-
-### Customization
-The game is built as a single HTML file with embedded CSS and JavaScript:
-- Add new seed words to `SAMPLE_PUZZLES`
-- Expand the word dictionary in `WORD_DEFINITIONS`
-- Modify the grid layout or styling
-- Add new Hamiltonian paths for variety
-
-## 📱 Mobile Support
-
-The game is fully responsive and works great on:
-- Desktop computers (click and drag)
-- Tablets (touch and drag)  
-- Mobile phones (optimized touch targets)
-- All modern browsers
+1. **CORNERSTONES** - The original puzzle
+2. **AVAILABILITY** - Concepts and states
+3. **EXPERIMENTAL** - Science and testing
+4. **TECHNOLOGIES** - Modern innovations
+5. **CHAMPIONSHIP** - Competition and sports
+6. **UNIVERSITIES** - Education and learning
+7. **NEIGHBORHOOD** - Community and places
+8. **THANKSGIVING** - Gratitude and celebration
+9. **ENCYCLOPEDIA** - Knowledge and reference
+10. **BREAKTHROUGH** - Achievement and progress
 
 ## 🎨 Features
 
-- ✅ **Cross-shaped grid** with proper corner removal
-- ✅ **Two complete sample puzzles** ready to play
-- ✅ **Quality definitions** without circular references
-- ✅ **Smooth drag selection** with visual feedback
-- ✅ **Progress persistence** across browser sessions
-- ✅ **Responsive design** for all screen sizes
-- ✅ **No dependencies** - pure HTML/CSS/JavaScript
-- ✅ **Free hosting** via GitHub Pages
+- **Responsive Design**: Works on desktop, tablet, and mobile
+- **Keyboard Navigation**: Full keyboard support with arrow keys
+- **Hint System**: Three types of hints to help players
+- **Progress Tracking**: Visual progress indicators
+- **Definition Lookup**: Click words to see their definitions
+- **Multiple Puzzles**: Switch between 10 different puzzles
 
-## 📝 Game Mechanics Deep Dive
+## 🧪 Testing
 
-### Seed Word Placement
-1. Take a 12-letter word (e.g., "CORNERSTONES")
-2. Choose a Hamiltonian path through the 12-cell cross
-3. Place each letter along the path in sequence
-4. This creates a unique, solvable puzzle
+Test files are organized in the `tests/` directory. The game includes:
+- Word finding algorithm tests
+- Puzzle validation tests
+- UI interaction tests
 
-### Word Validation
-1. Check path follows adjacency rules (including diagonals)
-2. Verify word length is 4+ characters
-3. Look up word in curated dictionary with definitions
-4. Prevent duplicate submissions
+## 📝 License
 
-### Example Words from CORNERSTONES:
-- **CORNER** (6 letters, 6 points) - "The place where two lines meet at an angle"
-- **STONE** (5 letters, 5 points) - "Hard solid mineral matter formed naturally"
-- **NOTES** (5 letters, 5 points) - "Brief written records or musical sounds of definite pitch"
-- **STERN** (5 letters, 5 points) - "Serious and uncompromising in manner or approach"
+This project is open source. See the repository for license details.
 
-Perfect for friends and family - just share the URL and start playing together!
+## 🤝 Contributing
 
-## 🔍 Comprehensive Word Discovery
-
-This game features a revolutionary word discovery system that finds **ALL possible English words** that can be traced through the grid:
-
-### 🎯 Advanced Features
-- **370k+ Word Dictionary**: Uses comprehensive English word list for complete coverage
-- **3-Tier Definition System**: 
-  - Dictionary API for authoritative definitions
-  - AI-powered fallback for quality definitions
-  - Smart filtering to avoid circular references
-- **Dynamic Word Count**: CORNERSTONES grid typically yields 50-100+ valid words
-- **Quality Definitions**: Every word comes with a proper, non-circular definition ready for progressive hints
-
-### 🚀 Technical Excellence
-- **O(1) Word Validation**: Lightning-fast lookup with comprehensive coverage
-- **Intelligent Definition Caching**: Pre-loads definitions for all discoverable words
-- **Progressive Loading**: Smooth user experience with loading states
-- **Offline Ready**: Works without internet after initial definition loading
-
-No more missing obvious words like STONE, STONES, CORNERS, or NOTES - this system finds them all!
+Contributions are welcome! Please see the development guide in `/docs/` for more information.

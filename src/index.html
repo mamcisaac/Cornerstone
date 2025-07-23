@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cornerstones - Word Puzzle Game</title>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/animations.css">
+    
+    <!-- Data Files -->
+    <script src="data/words-database-compact.js"></script>
+    <script src="data/common-words.js"></script>
+    <script src="data/common-definitions.js"></script>
+    <script src="data/seed-words.js"></script>
+</head>
+<body>
+    <!-- Mobile tabs for smaller screens -->
+    <div class="mobile-tabs">
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="switchTab('game')">Game</button>
+            <button class="tab-button" onclick="switchTab('cornerstone')">Cornerstone Words</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Game Panel -->
+        <div id="game-tab" class="tab-content active">
+            <div class="game-container">
+                <div class="header">
+                    <h1 class="title">Cornerstones</h1>
+                    <p class="subtitle">Find words in the grid by connecting adjacent letters</p>
+                    <button class="help-button" onclick="showInstructions()">?</button>
+                </div>
+
+                <!-- Enhanced Stats Display with Chips -->
+                <div class="stats-container">
+                    <div class="stat-chip">
+                        <div class="stat-value" id="words-found-count">0</div>
+                        <div class="stat-label">Found</div>
+                    </div>
+                    <div class="stat-chip cornerstone">
+                        <div class="stat-value" id="cornerstone-count">0</div>
+                        <div class="stat-label">Cornerstone</div>
+                    </div>
+                    <div class="stat-chip">
+                        <div class="stat-value" id="total-words-count">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-chip hints">
+                        <div class="stat-value" id="hints-remaining">3</div>
+                        <div class="stat-label">Hints</div>
+                    </div>
+                </div>
+
+                <div class="current-word">
+                    <div class="word-display" id="current-word"></div>
+                </div>
+
+                <div class="message" id="message"></div>
+
+                <div class="game-grid" id="grid"></div>
+
+                <div class="found-words">
+                    <h3>Found Words</h3>
+                    <div class="word-list" id="found-words-list"></div>
+                </div>
+
+                <div class="controls">
+                    <button class="control-button" id="switch-puzzle-btn" onclick="game.switchPuzzle()">Switch Puzzle</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cornerstone Words Panel -->
+        <div id="cornerstone-tab" class="tab-content cornerstone-panel">
+            <div class="cornerstone-section">
+                <h3>
+                    Discover all cornerstone words to complete the puzzle
+                    <span class="cornerstone-count" id="cornerstone-progress">0/0</span>
+                </h3>
+                
+                <div class="progress-indicator">
+                    <div>Progress: <span id="progress-text">0%</span></div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div class="cornerstone-list" id="cornerstone-words"></div>
+
+                <!-- Sticky Hint Section -->
+                <div class="hint-section-sticky">
+                    <div class="hint-header">
+                        <h4>Need a hint?</h4>
+                        <span class="hint-count" id="hint-count-display">3 remaining</span>
+                    </div>
+                    <div class="hint-actions">
+                        <button class="hint-button" onclick="game.revealWord()" id="reveal-word-btn">
+                            <span>Reveal a word</span>
+                            <span class="hint-cost">1 hint</span>
+                        </button>
+                        <button class="hint-button" onclick="game.revealLetter()" id="reveal-letter-btn">
+                            <span>Reveal a letter</span>
+                            <span class="hint-cost">1 hint</span>
+                        </button>
+                        <button class="hint-button" onclick="game.showDefinition()" id="show-definition-btn">
+                            <span>Show definition</span>
+                            <span class="hint-cost">Free</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Definition Popup -->
+    <div class="overlay" id="overlay" onclick="hideDefinition()"></div>
+    <div class="definition-popup" id="definition-popup">
+        <div class="popup-word" id="popup-word"></div>
+        <div class="popup-type" id="popup-type"></div>
+        <div class="popup-definition" id="popup-definition"></div>
+        <button class="close-btn" onclick="hideDefinition()">Close</button>
+    </div>
+
+    <!-- Instructions Popup -->
+    <div class="instructions-popup" id="instructions-popup">
+        <button class="instructions-close-x" onclick="hideInstructions()">×</button>
+        <h2>How to Play Cornerstones</h2>
+        
+        <div class="section">
+            <h3>🎯 Objective</h3>
+            <ul>
+                <li>Find all the <strong>cornerstone words</strong> hidden in the letter grid</li>
+                <li>Cornerstone words are common English words that appear in the puzzle</li>
+                <li>Complete the puzzle by discovering every cornerstone word!</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>🖱️ How to Find Words</h3>
+            <ul>
+                <li><strong>Mouse/Trackpad:</strong> Click and drag to select letters</li>
+                <li><strong>Keyboard:</strong> Use arrow keys to navigate, Space to select/deselect</li>
+                <li><strong>Touch:</strong> Tap and drag across letters on mobile devices</li>
+                <li>Letters must be adjacent (including diagonally)</li>
+                <li>Words must be at least 4 letters long</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>💡 Hints Available</h3>
+            <ul>
+                <li><strong>Reveal a word:</strong> Shows you a random unfound cornerstone word</li>
+                <li><strong>Reveal a letter:</strong> Shows one letter position in a cornerstone word</li>
+                <li><strong>Show definition:</strong> Click any cornerstone word to see its definition (free!)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>📱 Mobile Tips</h3>
+            <ul>
+                <li>Use the tabs at the top to switch between Game and Cornerstone Words</li>
+                <li>Scroll through the cornerstone words list to see your progress</li>
+                <li>Hints are always available at the bottom of the cornerstone words screen</li>
+            </ul>
+        </div>
+
+        <button class="close-instructions" onclick="hideInstructions()">Got it!</button>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script type="module" src="js/constants.js"></script>
+    <script type="module" src="js/ui.js"></script>
+    <script type="module" src="js/wordFinder.js"></script>
+    <script type="module" src="js/game.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

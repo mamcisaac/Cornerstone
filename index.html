@@ -1189,7 +1189,7 @@
             <p>Two ways to form words:</p>
             <ul>
                 <li><strong>Mouse:</strong> Click and drag to select letters</li>
-                <li><strong>Keyboard:</strong> Arrow keys to navigate, Space to add letters, Enter to submit, Escape to clear</li>
+                <li><strong>Keyboard:</strong> Arrow keys to navigate, Space to add letters, Backspace to remove last letter, Enter to submit, Escape to clear</li>
             </ul>
         </div>
 
@@ -1506,6 +1506,15 @@
                     case 'Escape':
                         // Clear selection (works globally)
                         this.clearSelection();
+                        e.preventDefault();
+                        return;
+                    case 'Backspace':
+                        // Remove last letter from selection (works globally)
+                        if (this.selectedPath.length > 0) {
+                            this.selectedPath.pop();
+                            this.updateSelection();
+                            this.updateCurrentWord();
+                        }
                         e.preventDefault();
                         return;
                     default:

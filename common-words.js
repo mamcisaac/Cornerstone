@@ -8815,11 +8815,17 @@ const COMMON_WORDS_LIST = [
 ];
 
 // Make sure we don't redeclare if already exists
-if (typeof COMMON_WORDS_SET === 'undefined') {
-    window.COMMON_WORDS_SET = new Set(COMMON_WORDS_LIST.map(w => w.toLowerCase()));
+let COMMON_WORDS_SET;
+if (typeof window !== 'undefined') {
+    if (typeof window.COMMON_WORDS_SET === 'undefined') {
+        window.COMMON_WORDS_SET = new Set(COMMON_WORDS_LIST.map(w => w.toLowerCase()));
+    }
+    COMMON_WORDS_SET = window.COMMON_WORDS_SET;
+} else {
+    COMMON_WORDS_SET = new Set(COMMON_WORDS_LIST.map(w => w.toLowerCase()));
 }
 
 // Export for use in the game
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { COMMON_WORDS_LIST, COMMON_WORDS_SET: window.COMMON_WORDS_SET };
+    module.exports = { COMMON_WORDS_LIST, COMMON_WORDS_SET };
 }

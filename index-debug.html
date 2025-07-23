@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cornerstones Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #debug {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cornerstones Debug Mode</h1>
+    <div id="debug">
+        <h2>Loading Status:</h2>
+        <div id="status"></div>
+    </div>
+    
+    <script>
+        const status = document.getElementById('status');
+        
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            status.appendChild(entry);
+            console.log(message);
+        }
+        
+        // Override console.error to also show on page
+        const originalError = console.error;
+        console.error = function(...args) {
+            log('ERROR: ' + args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+        
+        log('Starting to load scripts...');
+        
+        // Scripts to load in order
+        const scripts = [
+            'words.js',
+            'common-words.js', 
+            'common-definitions.js',
+            'seed-words.js',
+            'hint-system.js'
+        ];
+        
+        let loadedCount = 0;
+        
+        function loadScript(index) {
+            if (index >= scripts.length) {
+                log(`All ${loadedCount} scripts loaded successfully!`, 'success');
+                checkLoadedObjects();
+                return;
+            }
+            
+            const script = scripts[index];
+            log(`Loading ${script}...`);
+            
+            const scriptElement = document.createElement('script');
+            scriptElement.src = script;
+            
+            scriptElement.onload = () => {
+                loadedCount++;
+                log(`✓ Loaded ${script}`, 'success');
+                loadScript(index + 1);
+            };
+            
+            scriptElement.onerror = () => {
+                log(`✗ Failed to load ${script}`, 'error');
+                loadScript(index + 1);
+            };
+            
+            document.body.appendChild(scriptElement);
+        }
+        
+        function checkLoadedObjects() {
+            log('\nChecking loaded objects:');
+            
+            const checks = [
+                { name: 'wordValidator', obj: window.wordValidator },
+                { name: 'COMMON_WORDS_SET', obj: window.COMMON_WORDS_SET },
+                { name: 'WORD_DEFINITIONS', obj: window.WORD_DEFINITIONS },
+                { name: 'getDefinition', obj: window.getDefinition },
+                { name: 'SEED_WORDS', obj: window.SEED_WORDS },
+                { name: 'HintSystem', obj: window.HintSystem }
+            ];
+            
+            checks.forEach(check => {
+                if (check.obj) {
+                    log(`✓ ${check.name} is loaded`, 'success');
+                } else {
+                    log(`✗ ${check.name} is NOT loaded`, 'error');
+                }
+            });
+            
+            // Try to create a simple game grid
+            log('\nTrying to create game grid...');
+            try {
+                const gridDiv = document.createElement('div');
+                gridDiv.style.cssText = 'display: grid; grid-template-columns: repeat(4, 50px); gap: 5px; margin-top: 20px;';
+                
+                for (let i = 0; i < 16; i++) {
+                    const cell = document.createElement('div');
+                    cell.style.cssText = 'width: 50px; height: 50px; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center;';
+                    if (![0, 3, 12, 15].includes(i)) {
+                        cell.textContent = 'A';
+                    } else {
+                        cell.style.visibility = 'hidden';
+                    }
+                    gridDiv.appendChild(cell);
+                }
+                
+                document.body.appendChild(gridDiv);
+                log('✓ Grid created successfully', 'success');
+            } catch (error) {
+                log('✗ Failed to create grid: ' + error.message, 'error');
+            }
+        }
+        
+        // Start loading
+        loadScript(0);
+    </script>
+</body>
+</html>

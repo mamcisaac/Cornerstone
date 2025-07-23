@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Word Validation</title>
+</head>
+<body>
+    <h1>Testing Word Validation</h1>
+    <div id="results"></div>
+    
+    <script src="words.js"></script>
+    <script>
+        const results = document.getElementById('results');
+        
+        async function testWords() {
+            results.innerHTML += '<p>Initializing word validator...</p>';
+            
+            await wordValidator.initialize();
+            
+            results.innerHTML += `<p>Word validator loaded: ${wordValidator.loaded}</p>`;
+            results.innerHTML += `<p>Total words in dictionary: ${wordValidator.getWordCount()}</p>`;
+            
+            const testWords = ['TOES', 'TORN', 'STONE', 'TERN', 'TONES', 'CORE', 'CORN'];
+            
+            results.innerHTML += '<h2>Testing words:</h2>';
+            for (const word of testWords) {
+                const isValid = wordValidator.isValidWord(word);
+                results.innerHTML += `<p>${word}: ${isValid ? '✅ VALID' : '❌ INVALID'}</p>`;
+            }
+        }
+        
+        testWords();
+    </script>
+</body>
+</html>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cornerstones - Daily Word Puzzle</title>
     <!-- Load word validation and definition systems -->
-    <script src="words.js"></script>
+    <script src="words-database-compact.js"></script>
     <script src="common-words.js"></script>
     <script src="common-definitions.js"></script>
     <script src="seed-words.js"></script>
@@ -1082,18 +1082,11 @@
                 this.cornerstoneWords = [];
                 this.validWords = [];
                 
-                if (!window.wordValidator || !window.wordValidator.loaded) {
-                    console.log('Word validator not loaded, initializing...');
-                    if (!window.wordValidator) {
-                        console.error('Word validator object not found!');
-                        return;
-                    }
-                    const success = await window.wordValidator.initialize();
-                    if (!success) {
-                        console.error('Failed to initialize word validator');
-                        return;
-                    }
+                if (!window.COMPREHENSIVE_WORD_SET) {
+                    console.error('Word database not loaded!');
+                    return;
                 }
+                console.log(`Word database loaded with ${window.COMPREHENSIVE_WORD_SET.size} words`);
                 
                 const visited = new Array(16).fill(false);
                 
@@ -1132,7 +1125,7 @@
                 visited[position] = true;
                 const newWord = currentWord + this.grid[position];
                 
-                if (newWord.length >= 4 && window.wordValidator.isValidWord(newWord)) {
+                if (newWord.length >= 4 && window.COMPREHENSIVE_WORD_SET && window.COMPREHENSIVE_WORD_SET.has(newWord.toUpperCase())) {
                     this.allPossibleWords.add(newWord.toUpperCase());
                 }
                 
@@ -1470,6 +1463,7 @@
                     } else {
                         // Default mode - unrevealed words are clickable if player has hints
                         if (!wordData.found && this.hintSystem.availableHints > 0) {
+                            // Allow clicking even if definition is shown (user might want to reveal letters)
                             wordEl.classList.add('clickable-hint');
                             wordEl.onclick = (e) => this.showHintOptionsMenu(wordData, e);
                         }
@@ -1656,6 +1650,7 @@
             }
 
             revealDefinitionForWord(wordData) {
+                console.log('revealDefinitionForWord called for:', wordData);
                 // Use hints
                 if (!this.hintSystem.useHints(1)) {
                     this.showMessage('Not enough hints!', 'error');
@@ -1670,6 +1665,7 @@
                 this.definitionRevealMode = false;
                 this.removeCancelHandler();
                 this.showMessage('Definition revealed!', 'success');
+                console.log('Definition revealed for:', wordData.word);
                 this.updateCornerstoneDisplay();
                 this.updateStats();
                 this.updateHintButtons();
@@ -1775,9 +1771,13 @@
             }
             
             selectHintOption(optionType) {
+                console.log('selectHintOption called with:', optionType, this.selectedHintWord);
                 this.closeHintOptionsMenu();
                 
-                if (!this.selectedHintWord) return;
+                if (!this.selectedHintWord) {
+                    console.log('No selected hint word!');
+                    return;
+                }
                 
                 // Check if player has enough hints
                 if (!this.hintSystem.canUseHint(1)) {
@@ -1787,9 +1787,26 @@
                 }
                 
                 if (optionType === 'letter') {
-                    // Enter letter selection mode for this word
-                    this.revealLetterMode = true;
-                    this.enterLetterSelection(this.selectedHintWord);
+                    // Don't set revealLetterMode here, let enterLetterSelection handle it
+                    // Just go directly to letter selection for this word
+                    this.letterSelectionWord = this.selectedHintWord;
+                    
+                    // Initialize revealed array if needed
+                    if (!this.selectedHintWord.revealed) {
+                        this.selectedHintWord.revealed = new Array(this.selectedHintWord.word.length).fill(false);
+                    }
+                    
+                    // Check if all letters are already revealed
+                    if (this.selectedHintWord.revealed.every(revealed => revealed)) {
+                        this.showMessage('All letters in that word are already revealed!', 'error');
+                        this.selectedHintWord = null;
+                        this.updateCornerstoneDisplay();
+                        return;
+                    }
+                    
+                    this.showMessage('Click on a letter position to reveal it!', 'success');
+                    this.updateCornerstoneDisplay();
+                    this.addCancelHandler();
                 } else if (optionType === 'definition') {
                     // Reveal definition for this word
                     this.revealDefinitionForWord(this.selectedHintWord);

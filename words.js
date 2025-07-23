@@ -28,7 +28,9 @@ const loadWords = async () => {
             'SORE', 'SORES', 'ROSE', 'NOSE', 'ONES', 'COST', 'COSTS',
             'COTS', 'SCOT', 'SECT', 'STERN', 'TERMS', 'TERM', 'NETS',
             'NESTS', 'ROSES', 'NOSE', 'NOSES', 'ORES', 'ERNS', 'EROS',
-            'ONCE', 'CONE', 'CONES', 'SCENE', 'SCENES', 'CREST', 'CRESTS'
+            'ONCE', 'CONE', 'CONES', 'SCENE', 'SCENES', 'CREST', 'CRESTS',
+            'TOES', 'TORN', 'RENT', 'RENTS', 'TORE', 'SOOT', 'SOON',
+            'NOES', 'ONTO', 'SNORE', 'ROOTS', 'ROOST', 'TERSE', 'STENO'
         ]);
         console.log(`Using fallback word list with ${fallbackWords.size} words`);
         return fallbackWords;

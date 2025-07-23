@@ -3,10 +3,17 @@
   "version": "1.0.0",
   "description": "A word puzzle game where players find words in a cross-shaped grid",
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:headless": "jest --testTimeout=30000"
+    "dev": "python3 -m http.server 8080",
+    "serve": "python3 -m http.server 8080",
+    "start": "python3 -m http.server 8080",
+    "test": "jest --config tests/jest.config.js",
+    "test:watch": "jest --config tests/jest.config.js --watch",
+    "test:coverage": "jest --config tests/jest.config.js --coverage",
+    "test:headless": "jest --config tests/jest.config.js --testTimeout=30000",
+    "lint": "echo 'No linter configured. Install ESLint for code quality checks.'",
+    "fetch-definitions": "node scripts/definition-fetcher.js --help",
+    "validate-puzzles": "node scripts/definition-fetcher.js --validate",
+    "build": "echo 'No build process configured. Files are served directly.'"
   },
   "dependencies": {
     "puppeteer": "^24.14.0"

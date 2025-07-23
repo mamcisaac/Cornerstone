@@ -43,10 +43,40 @@ cornerstone/
 
 ## 🚀 Getting Started
 
-1. **Local Development**: Simply open `src/index.html` in a web browser
-2. **Web Server**: Serve the `src/` directory with any web server
+### Development Server
+```bash
+# Start development server on http://localhost:8080
+npm run dev
+
+# Alternative commands
+npm run serve
+npm start
+```
+
+### Direct File Access
+1. **Local Development**: Open `index.html` in a web browser
+2. **Web Server**: Serve the root directory with any web server
 
 ## 🛠️ Development Tools
+
+### Available Scripts
+```bash
+# Development server
+npm run dev                    # Start development server
+npm run serve                  # Alternative server command
+npm start                      # Standard start command
+
+# Testing
+npm test                       # Run test suite
+npm run test:watch            # Run tests in watch mode
+npm run test:coverage         # Run tests with coverage report
+
+# Utilities
+npm run fetch-definitions     # Show definition fetcher help
+npm run validate-puzzles      # Validate all puzzle definitions
+npm run lint                  # Code quality checks (install ESLint first)
+npm run build                 # Build for production (placeholder)
+```
 
 ### Definition Fetcher
 

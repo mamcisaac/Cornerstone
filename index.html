@@ -1274,7 +1274,6 @@
                 this.gameStarted = false;
                 this.hintSystem = new HintSystem();
                 this.sortAlphabetically = false;
-                this.revealLetterMode = false;
                 this.letterSelectionWord = null;
                 this.definitionRevealMode = false;
                 this.cancelHandler = null;
@@ -1937,10 +1936,6 @@
                     } else if (this.globalLetterRevealMode) {
                         // In global letter reveal mode, words are not clickable - only individual letters are
                         // Click handling for letters is done in the event delegation below
-                    } else if (this.revealLetterMode) {
-                        // In reveal letter mode, unfound words are clickable
-                        wordEl.classList.add('clickable-hint');
-                        wordEl.onclick = () => this.enterLetterSelection(wordData);
                     } else if (this.letterSelectionWord) {
                         // In letter selection mode
                         if (this.letterSelectionWord === wordData) {
@@ -2044,58 +2039,22 @@
                     return;
                 }
 
-                // Enter reveal letter mode
-                this.revealLetterMode = true;
-                this.showMessage('Click on a cornerstone word to choose which letter to reveal!', 'success');
-                this.updateCornerstoneDisplay(); // Refresh to show clickable state
-                this.addCancelHandler(); // Allow canceling by clicking elsewhere
-            }
-
-            enterLetterSelection(wordData) {
-                // Exit reveal letter mode and enter letter selection mode
-                this.revealLetterMode = false;
-                this.letterSelectionWord = wordData;
+                // Enter global letter reveal mode - same as dropdown option
+                this.globalLetterRevealMode = true;
+                this.letterSelectionWord = null; // Clear any specific word selection
                 
-                // Initialize revealed array if needed
-                if (!wordData.revealed) {
-                    wordData.revealed = new Array(wordData.word.length).fill(false);
-                }
-
-                // Check if all letters are already revealed
-                if (wordData.revealed.every(revealed => revealed)) {
-                    this.showMessage('All letters in that word are already revealed!', 'error');
-                    this.letterSelectionWord = null;
-                    this.updateCornerstoneDisplay();
-                    this.removeCancelHandler();
-                    return;
-                }
-
-                this.showMessage('Click on a letter position to reveal it, or click another word to switch!', 'success');
-                this.updateCornerstoneDisplay();
-                // Cancel handler is already added from reveal letter mode, no need to add again
-            }
-
-            switchLetterSelection(wordData) {
-                // Switch to a different word for letter selection
-                this.letterSelectionWord = wordData;
+                // Initialize revealed arrays for all words if needed
+                this.cornerstoneWords.forEach(word => {
+                    if (!word.found && !word.revealed) {
+                        word.revealed = new Array(word.word.length).fill(false);
+                    }
+                });
                 
-                // Initialize revealed array if needed
-                if (!wordData.revealed) {
-                    wordData.revealed = new Array(wordData.word.length).fill(false);
-                }
-
-                // Check if all letters are already revealed
-                if (wordData.revealed.every(revealed => revealed)) {
-                    this.showMessage('All letters in that word are already revealed!', 'error');
-                    this.letterSelectionWord = null;
-                    this.updateCornerstoneDisplay();
-                    this.removeCancelHandler();
-                    return;
-                }
-
-                this.showMessage('Click on a letter position to reveal it, or click another word to switch!', 'success');
+                this.showMessage('Click on any letter position in any word to reveal it!', 'success');
                 this.updateCornerstoneDisplay();
+                this.addCancelHandler();
             }
+
 
             addCancelHandler() {
                 // Add click handler to cancel letter selection when clicking elsewhere
@@ -2125,7 +2084,6 @@
                 const wasDefinitionMode = this.definitionRevealMode;
                 const wasGlobalLetterMode = this.globalLetterRevealMode;
                 this.letterSelectionWord = null;
-                this.revealLetterMode = false;
                 this.definitionRevealMode = false;
                 this.globalLetterRevealMode = false;
                 const message = wasDefinitionMode ? 'Definition reveal cancelled' : 'Letter reveal cancelled';
@@ -2233,7 +2191,6 @@
             newGame() {
                 this.foundWords.clear();
                 this.hintSystem = new HintSystem();
-                this.revealLetterMode = false;
                 this.letterSelectionWord = null;
                 this.definitionRevealMode = false;
                 this.removeCancelHandler(); // Remove cancel handler

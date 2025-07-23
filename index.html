@@ -1774,34 +1774,35 @@
             
             selectHintOption(optionType) {
                 console.log('selectHintOption called with:', optionType, this.selectedHintWord);
-                this.closeHintOptionsMenu();
                 
                 if (!this.selectedHintWord) {
                     console.log('No selected hint word!');
                     return;
                 }
                 
+                // Store the selected word before closing menu
+                const wordData = this.selectedHintWord;
+                this.closeHintOptionsMenu();
+                
                 // Check if player has enough hints
                 if (!this.hintSystem.canUseHint(1)) {
                     this.showMessage('Not enough hints!', 'error');
-                    this.selectedHintWord = null;
                     return;
                 }
                 
                 if (optionType === 'letter') {
                     // Don't set revealLetterMode here, let enterLetterSelection handle it
                     // Just go directly to letter selection for this word
-                    this.letterSelectionWord = this.selectedHintWord;
+                    this.letterSelectionWord = wordData;
                     
                     // Initialize revealed array if needed
-                    if (!this.selectedHintWord.revealed) {
-                        this.selectedHintWord.revealed = new Array(this.selectedHintWord.word.length).fill(false);
+                    if (!wordData.revealed) {
+                        wordData.revealed = new Array(wordData.word.length).fill(false);
                     }
                     
                     // Check if all letters are already revealed
-                    if (this.selectedHintWord.revealed.every(revealed => revealed)) {
+                    if (wordData.revealed.every(revealed => revealed)) {
                         this.showMessage('All letters in that word are already revealed!', 'error');
-                        this.selectedHintWord = null;
                         this.updateCornerstoneDisplay();
                         return;
                     }
@@ -1811,10 +1812,8 @@
                     this.addCancelHandler();
                 } else if (optionType === 'definition') {
                     // Reveal definition for this word
-                    this.revealDefinitionForWord(this.selectedHintWord);
+                    this.revealDefinitionForWord(wordData);
                 }
-                
-                this.selectedHintWord = null;
             }
 
             async loadProgress() {

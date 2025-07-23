@@ -11,6 +11,26 @@
     <script src="seed-words.js"></script>
     <script src="hint-system.js"></script>
     <style>
+        /* CSS Variables for Type Scale and Design Tokens */
+        :root {
+            --font-size-32: 2rem;
+            --font-size-24: 1.5rem;
+            --font-size-18: 1.125rem;
+            --font-size-16: 1rem;
+            --font-size-14: 0.875rem;
+            --font-size-12: 0.75rem;
+            
+            /* Color tokens for improved contrast and consistency */
+            --cs-neutral-dark: #212121;
+            --cs-neutral-medium: #666666;
+            --cs-neutral-light: #9ca3af;
+            --cs-success: #12b76a;
+            --cs-primary: #667eea;
+            --cs-accent: #2b63d4;
+            --cs-background: #ffffff;
+            --cs-background-soft: #f8f9fa;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -27,9 +47,10 @@
         .main-container {
             max-width: 1400px;
             margin: 0 auto;
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
+            display: grid;
+            grid-template-columns: 1fr minmax(280px, 32%);
+            gap: 24px;
+            align-items: start;
         }
 
         .game-container {
@@ -145,34 +166,103 @@
             border-color: #667eea;
         }
 
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+        /* Updated Stats: Separate Chips for Better Visual Hierarchy */
+        .stats-container {
+            display: flex;
+            gap: 12px;
             margin-bottom: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
+            flex-wrap: wrap;
         }
 
-        .stat {
+        .stat-chip {
+            flex: 1;
+            min-width: 100px;
+            background: var(--cs-background);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px 12px;
             text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .stat-chip:hover {
+            border-color: var(--cs-primary);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
         }
 
         .stat-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
+            font-size: var(--font-size-24);
+            font-weight: 600;
+            color: var(--cs-neutral-dark);
+            line-height: 1.2;
+            margin-bottom: 4px;
+            transition: all 0.3s ease;
         }
 
         .stat-label {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 5px;
+            font-size: var(--font-size-12);
+            color: var(--cs-neutral-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            font-weight: 500;
         }
 
-        .cornerstone-stat {
-            color: #22c55e;
+        .stat-chip.cornerstone .stat-value {
+            color: var(--cs-success);
+        }
+
+        .stat-chip.hints .stat-value {
+            color: var(--cs-primary);
+        }
+
+        /* Animation for hint decrement */
+        .stat-value.decrement {
+            animation: hint-decrement 0.4s ease;
+        }
+
+        @keyframes hint-decrement {
+            0% { transform: scale(1); color: var(--cs-primary); }
+            50% { transform: scale(1.2); color: #f59e0b; }
+            100% { transform: scale(1); color: var(--cs-primary); }
+        }
+
+        /* Word acceptance animation */
+        .cell.word-found {
+            animation: word-found 0.6s ease;
+        }
+
+        @keyframes word-found {
+            0% { transform: scale(1); }
+            20% { transform: scale(1.15); background: #22c55e; color: white; }
+            60% { transform: scale(1.1); background: #22c55e; color: white; }
+            100% { transform: scale(1); }
+        }
+
+        /* New word pill fade-in animation */
+        .found-word.animate-in {
+            animation: pill-fade-in 0.5s ease;
+        }
+
+        @keyframes pill-fade-in {
+            0% { 
+                opacity: 0; 
+                transform: translateY(-10px) scale(0.9); 
+            }
+            50% { 
+                opacity: 0.8; 
+                transform: translateY(-2px) scale(1.05); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        /* Legacy support - hide old stats container */
+        .stats {
+            display: none;
         }
 
         .current-word {
@@ -242,7 +332,9 @@
 
         .found-words h3 {
             margin-bottom: 10px;
-            color: #333;
+            color: var(--cs-neutral-dark);
+            font-size: var(--font-size-18);
+            font-weight: 600;
         }
 
         .word-list {
@@ -261,20 +353,20 @@
         }
 
         .found-word.cornerstone {
-            background: #48bb78;
+            background: var(--cs-success);
         }
 
         .found-word.regular {
-            background: #4299e1;
+            background: var(--cs-accent); /* Darker blue for better contrast */
         }
 
         .found-word.cornerstone:hover {
-            background: #38a169;
+            background: #0f9f67; /* Darker green for hover */
             transform: scale(1.05);
         }
 
         .found-word.regular:hover {
-            background: #3182ce;
+            background: #1e40af; /* Darker blue for hover */
             transform: scale(1.05);
         }
 
@@ -283,22 +375,85 @@
         }
 
         .cornerstone-section h3 {
-            color: #333;
+            color: var(--cs-neutral-dark);
             margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: var(--font-size-18);
+            font-weight: 600;
         }
 
         .cornerstone-count {
-            font-size: 1.2em;
-            color: #22c55e;
+            font-size: var(--font-size-16);
+            color: var(--cs-neutral-medium);
+            font-weight: 500;
         }
 
         .cornerstone-list {
             display: flex;
             flex-direction: column;
             gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        /* Custom Scrollbar for Better UX */
+        .cornerstone-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .cornerstone-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .cornerstone-list::-webkit-scrollbar-thumb {
+            background: var(--cs-neutral-light);
+            border-radius: 3px;
+            transition: background 0.2s;
+        }
+
+        .cornerstone-list::-webkit-scrollbar-thumb:hover {
+            background: var(--cs-primary);
+        }
+
+        /* Firefox scrollbar */
+        .cornerstone-list {
+            scrollbar-width: thin;
+            scrollbar-color: var(--cs-neutral-light) #f1f1f1;
+        }
+
+        /* Sticky Progress Indicator */
+        .progress-indicator {
+            position: sticky;
+            top: 0;
+            background: var(--cs-background);
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 8px;
+            font-size: var(--font-size-12);
+            color: var(--cs-neutral-medium);
+            text-align: center;
+            z-index: 2;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cs-success), #10b981);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 0%;
         }
 
         .cornerstone-word {
@@ -796,25 +951,32 @@
             background: #5a67d8;
         }
 
-        @media (max-width: 1024px) {
+        /* Modern Responsive Breakpoint with CSS Grid */
+        @media (max-width: 960px) {
             .main-container {
-                flex-direction: column;
-                align-items: center;
+                grid-template-columns: 1fr;
+                gap: 16px;
             }
-
+            
             .cornerstone-panel {
                 width: 100%;
                 max-width: 600px;
+                margin: 0 auto;
                 display: none;
+                order: 2;
             }
-
+            
+            .game-container {
+                order: 1;
+            }
+            
             .mobile-tabs {
                 display: block;
                 max-width: 600px;
                 width: 100%;
                 margin: 0 auto 20px;
             }
-
+            
             .tab-content {
                 display: none;
             }
@@ -829,11 +991,25 @@
                 border-radius: 0 0 20px 20px;
                 margin-top: -20px;
             }
+            
+            .title {
+                font-size: var(--font-size-32);
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .stat-chip {
+                min-width: auto;
+            }
         }
 
+        /* Mobile optimizations */
         @media (max-width: 480px) {
             body {
-                padding: 10px;
+                padding: 12px;
             }
 
             .game-container {
@@ -846,29 +1022,38 @@
                 font-size: 1.5em;
             }
             
-            .title {
-                font-size: 2em;
+            .stats-container {
+                gap: 6px;
             }
-
-            .stats {
-                grid-template-columns: 1fr;
+            
+            .stat-chip {
+                padding: 12px 8px;
             }
-
+            
             .instructions-popup {
                 padding: 20px;
                 padding-top: 35px;
                 width: 95%;
-                max-height: 85vh;
+                max-height: 90vh;
+                max-width: 90vw;
                 top: 50%;
+                overflow-y: auto;
             }
-
+            
             .instructions-close-x {
                 top: 5px;
                 right: 5px;
             }
-
+            
             .close-instructions {
                 padding: 12px 24px;
+            }
+        }
+
+        /* Support for modern viewport units */
+        @supports (height: 100dvh) {
+            .instructions-popup {
+                max-height: 90dvh;
             }
         }
     </style>
@@ -885,25 +1070,42 @@
         <div class="game-container tab-content active" id="game-tab">
             <div class="header">
                 <h1 class="title">Cornerstones</h1>
-                <p class="subtitle">Find cornerstone words to win!</p>
+                <p class="subtitle">Discover **all** cornerstone words to complete the puzzle</p>
                 <button class="help-button" onclick="game.showInstructions()" title="How to play">?</button>
             </div>
 
-            <div class="game-grid" id="gameGrid">
+            <div class="game-grid" id="gameGrid" role="grid" aria-label="Letter grid for forming words">
                 <!-- Grid cells will be generated by JavaScript -->
             </div>
 
+            <!-- Updated Stats: Separate Chips for Better Visual Hierarchy -->
+            <div class="stats-container">
+                <div class="stat-chip cornerstone">
+                    <div class="stat-value" id="cornerstoneFound">0</div>
+                    <div class="stat-label">Cornerstones</div>
+                </div>
+                <div class="stat-chip">
+                    <div class="stat-value" id="totalFound">0</div>
+                    <div class="stat-label">Valid Words Found</div>
+                </div>
+                <div class="stat-chip hints">
+                    <div class="stat-value" id="hintsAvailable">0</div>
+                    <div class="stat-label">Hints</div>
+                </div>
+            </div>
+            
+            <!-- Legacy stats container (hidden) -->
             <div class="stats">
                 <div class="stat">
-                    <div class="stat-value cornerstone-stat" id="cornerstoneFound">0</div>
+                    <div class="stat-value cornerstone-stat" id="cornerstoneFound-legacy">0</div>
                     <div class="stat-label">Cornerstone Words</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-value" id="totalFound">0</div>
+                    <div class="stat-value" id="totalFound-legacy">0</div>
                     <div class="stat-label">Total Words</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-value" id="hintsAvailable">0</div>
+                    <div class="stat-value" id="hintsAvailable-legacy">0</div>
                     <div class="stat-label">Hints Available</div>
                 </div>
             </div>
@@ -911,6 +1113,9 @@
             <div class="current-word">
                 <div class="word-display" id="currentWord">Select letters to form words</div>
             </div>
+
+            <!-- Screen reader announcements -->
+            <div id="sr-announcements" aria-live="polite" aria-atomic="true" style="position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;"></div>
 
             <div class="message" id="message"></div>
 
@@ -932,6 +1137,12 @@
                     <span class="cornerstone-count" id="cornerstoneCount">0/0</span>
                 </h3>
                 <div class="cornerstone-list" id="cornerstoneList">
+                    <div class="progress-indicator">
+                        <div id="progressText">0 of 0 found</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
                     <!-- Cornerstone words will be populated here -->
                 </div>
             </div>
@@ -1008,7 +1219,7 @@
         <div class="section">
             <h3>Hints</h3>
             <ul>
-                <li>Each blue word earns <strong>1 hint</strong>.</li>
+                <li>Each blue word earns <strong>1 hint</strong>. Hints unlock after the word list on the right.</li>
                 <li>Click on unrevealed cornerstone words to spend hints.</li>
                 <li>Spend hints to reveal letters or see a word's definition—use them wisely.</li>
             </ul>
@@ -1215,9 +1426,17 @@
                     cell.className = 'cell';
                     cell.dataset.index = i;
                     
+                    // Calculate row and column for ARIA label (4x4 grid)
+                    const row = Math.floor(i / 4) + 1;
+                    const col = (i % 4) + 1;
+                    
                     if ([0, 3, 12, 15].includes(i)) {
                         cell.classList.add('empty');
+                        cell.setAttribute('aria-hidden', 'true');
                     } else {
+                        cell.setAttribute('role', 'gridcell');
+                        cell.setAttribute('tabindex', '0');
+                        cell.setAttribute('aria-label', `Empty cell at row ${row}, column ${col}`);
                         this.addCellEventListeners(cell);
                     }
                     
@@ -1239,7 +1458,14 @@
                 const cells = document.querySelectorAll('.cell:not(.empty)');
                 cells.forEach((cell) => {
                     const index = parseInt(cell.dataset.index);
-                    cell.textContent = this.grid[index] || '';
+                    const letter = this.grid[index] || '';
+                    const row = Math.floor(index / 4) + 1;
+                    const col = (index % 4) + 1;
+                    
+                    cell.textContent = letter;
+                    if (letter) {
+                        cell.setAttribute('aria-label', `Letter ${letter} at row ${row}, column ${col}`);
+                    }
                 });
             }
 
@@ -1321,8 +1547,69 @@
                 };
                 document.addEventListener('click', this.globalClickHandler);
                 
+                // Add keyboard navigation support
+                document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+                
                 // Set up mode-specific global listeners
                 this.updateGlobalEventListeners();
+            }
+
+            handleKeyDown(e) {
+                // Only handle keyboard navigation when focus is on grid cells
+                if (!e.target.classList.contains('cell')) return;
+                
+                const currentIndex = parseInt(e.target.dataset.index);
+                let newIndex = currentIndex;
+                
+                switch (e.key) {
+                    case 'ArrowUp':
+                        newIndex = currentIndex - 4;
+                        break;
+                    case 'ArrowDown':
+                        newIndex = currentIndex + 4;
+                        break;
+                    case 'ArrowLeft':
+                        newIndex = currentIndex - 1;
+                        break;
+                    case 'ArrowRight':
+                        newIndex = currentIndex + 1;
+                        break;
+                    case ' ':
+                    case 'Spacebar':
+                        // Add current cell to selection
+                        if (this.selectedPath.length === 0) {
+                            this.selectedPath = [currentIndex];
+                            this.updateSelection();
+                        } else if (!this.selectedPath.includes(currentIndex) && 
+                                 this.isAdjacent(this.selectedPath[this.selectedPath.length - 1], currentIndex)) {
+                            this.addToPath(currentIndex);
+                        }
+                        e.preventDefault();
+                        return;
+                    case 'Enter':
+                        // Submit current word
+                        if (this.selectedPath.length > 0) {
+                            this.submitCurrentWord();
+                        }
+                        e.preventDefault();
+                        return;
+                    case 'Escape':
+                        // Clear selection
+                        this.clearSelection();
+                        e.preventDefault();
+                        return;
+                    default:
+                        return; // Don't handle other keys
+                }
+                
+                // Navigate to new cell
+                if (newIndex >= 0 && newIndex < 16) {
+                    const newCell = document.querySelector(`[data-index="${newIndex}"]`);
+                    if (newCell && !newCell.classList.contains('empty')) {
+                        e.preventDefault();
+                        newCell.focus();
+                    }
+                }
             }
             
             updateGlobalEventListeners() {
@@ -1543,6 +1830,9 @@
                 // Check if it's a cornerstone word
                 const cornerstoneWord = this.cornerstoneWords.find(w => w.word === upperWord);
                 if (cornerstoneWord) {
+                    // Animate grid cells
+                    this.animateWordAcceptance();
+                    
                     cornerstoneWord.found = true;
                     this.foundWords.add(upperWord);
                     this.showMessage(`Cornerstone word found: "${upperWord}"!`, 'cornerstone');
@@ -1551,8 +1841,21 @@
                     this.updateCornerstoneDisplay();
                     this.saveProgress();
                 } else if (this.validWords.includes(upperWord)) {
+                    // Animate grid cells
+                    this.animateWordAcceptance();
+                    
                     // Valid word but not cornerstone - earn a hint
                     this.foundWords.add(upperWord);
+                    
+                    // Animate hint increment
+                    const hintsEl = document.getElementById('hintsAvailable');
+                    if (hintsEl) {
+                        hintsEl.style.animation = 'none';
+                        setTimeout(() => {
+                            hintsEl.style.animation = 'hint-decrement 0.4s ease reverse';
+                        }, 10);
+                    }
+                    
                     this.hintSystem.earnHint();
                     this.showMessage(`"${upperWord}" found! +1 hint earned`, 'success');
                     this.updateFoundWords();
@@ -1565,13 +1868,34 @@
                 }
             }
 
+            animateWordAcceptance() {
+                // Animate all cells in the current path
+                this.selectedPath.forEach((cellIndex, pathIndex) => {
+                    const cell = document.querySelector(`[data-index="${cellIndex}"]`);
+                    if (cell) {
+                        setTimeout(() => {
+                            cell.classList.add('word-found');
+                            setTimeout(() => {
+                                cell.classList.remove('word-found');
+                            }, 600);
+                        }, pathIndex * 50); // Stagger animation
+                    }
+                });
+            }
+
             showMessage(text, type) {
                 const currentWordEl = document.getElementById('currentWord');
                 const messageEl = document.getElementById('message');
+                const srEl = document.getElementById('sr-announcements');
                 
                 // Show message in the currentWord element
                 currentWordEl.textContent = text;
                 currentWordEl.className = `word-display ${type}`;
+                
+                // Announce to screen readers
+                if (srEl) {
+                    srEl.textContent = text;
+                }
                 
                 // Also clear the old message element
                 messageEl.textContent = '';
@@ -1631,13 +1955,24 @@
 
             updateFoundWords() {
                 const wordListEl = document.getElementById('wordList');
-                wordListEl.innerHTML = '';
+                const existingWords = new Set(Array.from(wordListEl.querySelectorAll('.found-word')).map(el => el.textContent));
                 
                 const sortedWords = Array.from(this.foundWords).sort();
-                sortedWords.forEach(word => {
+                wordListEl.innerHTML = '';
+                
+                sortedWords.forEach((word, index) => {
                     const wordEl = document.createElement('span');
                     const isCornerstone = this.cornerstoneWords.some(w => w.word === word);
                     wordEl.className = isCornerstone ? 'found-word cornerstone' : 'found-word regular';
+                    
+                    // Add animation for new words
+                    if (!existingWords.has(word)) {
+                        wordEl.classList.add('animate-in');
+                        setTimeout(() => {
+                            wordEl.classList.remove('animate-in');
+                        }, 500);
+                    }
+                    
                     wordEl.textContent = word;
                     wordEl.onclick = () => this.showDefinition(word, isCornerstone);
                     wordListEl.appendChild(wordEl);
@@ -1661,7 +1996,24 @@
 
             updateCornerstoneDisplay() {
                 const listEl = document.getElementById('cornerstoneList');
-                listEl.innerHTML = '';
+                
+                // Clear only the words, preserve progress indicator
+                const wordsContainer = listEl.querySelector('.words-container') || (() => {
+                    const container = document.createElement('div');
+                    container.className = 'words-container';
+                    listEl.appendChild(container);
+                    return container;
+                })();
+                wordsContainer.innerHTML = '';
+                
+                // Update progress indicator
+                const foundCount = this.cornerstoneWords.filter(w => w.found).length;
+                const totalCount = this.cornerstoneWords.length;
+                const progressText = document.getElementById('progressText');
+                const progressFill = document.getElementById('progressFill');
+                
+                if (progressText) progressText.textContent = `${foundCount} of ${totalCount} found`;
+                if (progressFill) progressFill.style.width = `${totalCount > 0 ? (foundCount / totalCount) * 100 : 0}%`;
                 
                 let displayWords = [...this.cornerstoneWords];
                 // Always sort alphabetically
@@ -1745,7 +2097,7 @@
                         }
                     }
                     
-                    listEl.appendChild(wordEl);
+                    wordsContainer.appendChild(wordEl);
                 });
 
                 // Add event delegation for global letter reveal mode

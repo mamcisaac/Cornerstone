@@ -1,6 +1,5 @@
 // Common English words (4+ letters) from Google 10,000 most common words list
 // Used to identify "cornerstone" words in the puzzle
-
 const COMMON_WORDS_LIST = [
   "that",
   "this",
@@ -949,7 +948,6 @@ const COMMON_WORDS_LIST = [
   "coming",
   "tuesday",
   "object",
-  "lesbian",
   "appropriate",
   "machine",
   "logo",
@@ -1600,7 +1598,6 @@ const COMMON_WORDS_LIST = [
   "discuss",
   "accept",
   "automotive",
-  "naked",
   "goal",
   "successful",
   "sold",
@@ -2641,7 +2638,6 @@ const COMMON_WORDS_LIST = [
   "jeff",
   "extent",
   "sharp",
-  "lesbians",
   "lane",
   "paragraph",
   "kill",
@@ -2703,7 +2699,6 @@ const COMMON_WORDS_LIST = [
   "plate",
   "expenses",
   "indicate",
-  "blonde",
   "proceedings",
   "favourite",
   "transmission",
@@ -3651,7 +3646,6 @@ const COMMON_WORDS_LIST = [
   "gang",
   "semester",
   "calculated",
-  "fetish",
   "applies",
   "casinos",
   "appearance",
@@ -4235,7 +4229,6 @@ const COMMON_WORDS_LIST = [
   "experiments",
   "afghanistan",
   "boost",
-  "spanking",
   "scholarship",
   "governance",
   "mill",
@@ -4438,7 +4431,6 @@ const COMMON_WORDS_LIST = [
   "webcam",
   "cuts",
   "funeral",
-  "nutten",
   "earrings",
   "enjoyed",
   "automated",
@@ -4911,7 +4903,6 @@ const COMMON_WORDS_LIST = [
   "dispute",
   "portuguese",
   "tired",
-  "titten",
   "adverse",
   "everywhere",
   "excerpt",
@@ -5220,7 +5211,6 @@ const COMMON_WORDS_LIST = [
   "hopefully",
   "brilliant",
   "turner",
-  "sucking",
   "cents",
   "reuters",
   "todd",
@@ -5519,7 +5509,6 @@ const COMMON_WORDS_LIST = [
   "ebook",
   "consolidated",
   "exclude",
-  "peeing",
   "occasions",
   "brooks",
   "equations",
@@ -5810,7 +5799,6 @@ const COMMON_WORDS_LIST = [
   "borders",
   "therapeutic",
   "pads",
-  "butts",
   "inns",
   "bobby",
   "impressive",
@@ -5827,7 +5815,6 @@ const COMMON_WORDS_LIST = [
   "microwave",
   "cheapest",
   "accidents",
-  "travesti",
   "relocation",
   "stuart",
   "contributors",
@@ -6253,7 +6240,6 @@ const COMMON_WORDS_LIST = [
   "tucson",
   "mechanics",
   "heavily",
-  "swingers",
   "fifty",
   "headers",
   "mistakes",
@@ -8437,7 +8423,6 @@ const COMMON_WORDS_LIST = [
   "novelty",
   "bryant",
   "tiles",
-  "voyuer",
   "librarian",
   "subsidiaries",
   "switched",
@@ -8522,7 +8507,6 @@ const COMMON_WORDS_LIST = [
   "refresh",
   "aluminium",
   "snowboard",
-  "beastality",
   "webcast",
   "michel",
   "evanescence",
@@ -8675,7 +8659,6 @@ const COMMON_WORDS_LIST = [
   "configurations",
   "poison"
 ];
-
 // Make sure we don't redeclare if already exists
 let CORNERSTONE_WORDS_SET;
 if (typeof window !== 'undefined') {
@@ -8686,7 +8669,6 @@ if (typeof window !== 'undefined') {
 } else {
     CORNERSTONE_WORDS_SET = new Set(COMMON_WORDS_LIST.map(w => w.toLowerCase()));
 }
-
 // Export for use in the game
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { COMMON_WORDS_LIST, CORNERSTONE_WORDS_SET };

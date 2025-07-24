@@ -17,16 +17,18 @@ export const HAMILTONIAN_PATHS = [
 ];
 
 export const SAMPLE_PUZZLES = {
-    "CORNERSTONES": { seedWord: "CORNERSTONES", pathIndex: 0 },
-    "EXPERIMENTAL": { seedWord: "EXPERIMENTAL", pathIndex: 2 },
-    "TECHNOLOGIES": { seedWord: "TECHNOLOGIES", pathIndex: 3 },
+    "ARCHITECTURE": { seedWord: "ARCHITECTURE", pathIndex: 6 },
     "BREAKTHROUGH": { seedWord: "BREAKTHROUGH", pathIndex: 9 },
-    "THANKSGIVING": { seedWord: "THANKSGIVING", pathIndex: 7 },
-    "ENCYCLOPEDIA": { seedWord: "ENCYCLOPEDIA", pathIndex: 2 },
-    "UNIVERSITIES": { seedWord: "UNIVERSITIES", pathIndex: 9 },
+    "CORNERSTONES": { seedWord: "CORNERSTONES", pathIndex: 0 },
     "DEVELOPMENTS": { seedWord: "DEVELOPMENTS", pathIndex: 2 },
+    "ENCYCLOPEDIA": { seedWord: "ENCYCLOPEDIA", pathIndex: 2 },
+    "EXPERIMENTAL": { seedWord: "EXPERIMENTAL", pathIndex: 2 },
+    "PRESENTATION": { seedWord: "PRESENTATION", pathIndex: 0 },
+    "PROFESSIONAL": { seedWord: "PROFESSIONAL", pathIndex: 5 },
+    "REGISTRATION": { seedWord: "REGISTRATION", pathIndex: 0 },
     "RELATIONSHIP": { seedWord: "RELATIONSHIP", pathIndex: 0 },
-    "CONVERSATION": { seedWord: "CONVERSATION", pathIndex: 3 }
+    "THANKSGIVING": { seedWord: "THANKSGIVING", pathIndex: 7 },
+    "UNIVERSITIES": { seedWord: "UNIVERSITIES", pathIndex: 9 }
 };
 
 export const ADJACENCY = {

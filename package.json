@@ -1,28 +1,20 @@
 {
   "name": "cornerstones-game",
   "version": "1.0.0",
+  "type": "module",
   "description": "A word puzzle game where players find words in a cross-shaped grid",
   "scripts": {
     "dev": "python3 -m http.server 8080",
     "serve": "python3 -m http.server 8080",
     "start": "python3 -m http.server 8080",
-    "test": "jest --config tests/jest.config.js",
-    "test:watch": "jest --config tests/jest.config.js --watch",
-    "test:coverage": "jest --config tests/jest.config.js --coverage",
-    "test:headless": "jest --config tests/jest.config.js --testTimeout=30000",
     "lint": "eslint src/js/**/*.js",
-    "fetch-definitions": "node scripts/definition-fetcher.js --help",
-    "validate-puzzles": "node scripts/definition-fetcher.js --validate",
     "build": "echo 'No build process configured. Files are served directly.'"
-  },
-  "dependencies": {
-    "jest-environment-jsdom": "^30.0.5",
-    "puppeteer": "^24.15.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",
-    "@types/jest": "^30.0.0",
-    "eslint": "^9.31.0",
-    "jest": "^30.0.4"
+    "eslint": "^9.31.0"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
   }
 }

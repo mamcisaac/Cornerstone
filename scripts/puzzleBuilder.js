@@ -1,6 +1,6 @@
 // Puzzle Builder - Generates valid Cornerstones puzzles from keystone words with word cleaning
-import { HAMILTONIAN_PATHS, ADJACENCY, CROSS_POSITIONS } from './constants.js';
-import { WordFinder } from './wordFinder.js';
+import { HAMILTONIAN_PATHS, ADJACENCY, CROSS_POSITIONS } from '../src/js/constants.js';
+import { WordFinder } from '../src/js/wordFinder.js';
 import { EnhancedDefinitionFetcher } from './enhancedDefinitionFetcher.js';
 
 export class PuzzleBuilder {
@@ -36,8 +36,14 @@ export class PuzzleBuilder {
                 });
             }
 
-            // Load all valid words from the word database
-            if (typeof WORDS_DATABASE !== 'undefined') {
+            // Load all valid words from the word database - use COMPREHENSIVE_WORD_SET which filters by definitions
+            if (typeof COMPREHENSIVE_WORD_SET !== 'undefined') {
+                // COMPREHENSIVE_WORD_SET is already a Set and already uppercased
+                this.allWords = COMPREHENSIVE_WORD_SET;
+                this.wordFinder.wordSet = this.allWords;
+                this.wordCleaningStats.originalWordCount = this.allWords.size;
+            } else if (typeof WORDS_DATABASE !== 'undefined') {
+                // Fallback to WORDS_DATABASE if COMPREHENSIVE_WORD_SET not available
                 WORDS_DATABASE.forEach(word => {
                     this.allWords.add(word.toUpperCase());
                 });
@@ -221,25 +227,35 @@ export class PuzzleBuilder {
             }
         };
         
-        const results = await this.definitionFetcher.processWordsForDefinitions(
+        const results = await this.definitionFetcher.fetchAndProcessWithQualityControl(
             puzzle.allWords, 
-            progressCallback
+            { saveToFile: true }
         );
         
-        // Update puzzle with cleaned words
+        // Update puzzle with cleaned words using new quality control result structure
+        const wordsToRemove = results.fetching.wordsToRemove || [];
         const cleanedAllWords = puzzle.allWords.filter(word => 
-            !results.wordsToRemove.includes(word)
+            !wordsToRemove.includes(word)
         );
         
         const cleanedCornerstoneWords = puzzle.cornerstoneWords.filter(word => 
-            !results.wordsToRemove.includes(word)
+            !wordsToRemove.includes(word)
         );
         
-        // Update word database if words were removed
-        if (results.wordsToRemove.length > 0) {
-            console.log(`     ❌ Removing ${results.wordsToRemove.length} words without definitions`);
-            this.removeWordsFromDatabase(results.wordsToRemove);
+        // Log comprehensive quality results
+        console.log(`     📊 Quality Control Results:`);
+        console.log(`     • High-quality definitions added: ${results.summary.highQualityDefinitionsAdded}`);
+        console.log(`     • Low-quality definitions rejected: ${results.summary.lowQualityDefinitionsRejected}`);
+        console.log(`     • Invalid words removed: ${results.summary.invalidWordsRemoved}`);
+        console.log(`     • Overall success rate: ${results.summary.overallSuccessRate}%`);
+        console.log(`     • Average quality score: ${results.quality.qualityStats.averageScore}/100`);
+        
+        // Update word database stats (word removal is handled by quality control system)
+        if (wordsToRemove.length > 0) {
             this.wordCleaningStats.puzzlesWithCleaning++;
+            
+            // Curate the actual word database file
+            await this.definitionFetcher.curateWordDatabase();
         }
         
         // Create cleaned puzzle

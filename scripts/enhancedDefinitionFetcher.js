@@ -1,4 +1,8 @@
-// Enhanced Definition Fetcher - API-optimized definition management with word database cleaning
+// Enhanced Definition Fetcher - API-optimized definition management with comprehensive quality controls
+import { WordDatabaseCurator } from './wordDatabaseCurator.js';
+import { DefinitionManager } from './definitionManager.js';
+import { DefinitionQualityChecker, DEFINITION_QUALITY_CONFIG } from './definitionQualityConfig.js';
+
 export class EnhancedDefinitionFetcher {
     constructor(options = {}) {
         this.options = {
@@ -31,6 +35,15 @@ export class EnhancedDefinitionFetcher {
         // Rate limiting
         this.lastRequestTime = 0;
         this.requestQueue = [];
+        
+        // Word database curation
+        this.curator = new WordDatabaseCurator();
+        
+        // Definition management with quality controls
+        this.definitionManager = new DefinitionManager({
+            enableLLMValidation: options.enableLLMValidation !== false,
+            qualityThreshold: options.qualityThreshold || DEFINITION_QUALITY_CONFIG.scoring.minimumAcceptableScore
+        });
     }
 
     /**
@@ -115,9 +128,7 @@ export class EnhancedDefinitionFetcher {
                 const parts = rawDef.split('\t');
                 const definition = parts.length > 1 ? parts[1].trim() : rawDef.trim();
                 
-                if (definition && 
-                    !this.containsRootWord(word, definition) && 
-                    !this.containsOffensiveContent(word, definition)) {
+                if (definition && this.passesQualityChecks(word, definition)) {
                     return {
                         word: word.toUpperCase(),
                         definition,
@@ -160,9 +171,7 @@ export class EnhancedDefinitionFetcher {
                 const meaningData = data[0].meanings[0];
                 const definition = meaningData.definitions[0].definition;
                 
-                if (definition && 
-                    !this.containsRootWord(word, definition) && 
-                    !this.containsOffensiveContent(word, definition)) {
+                if (definition && this.passesQualityChecks(word, definition)) {
                     return {
                         word: word.toUpperCase(),
                         definition,
@@ -181,66 +190,71 @@ export class EnhancedDefinitionFetcher {
     }
 
     /**
-     * Check if definition contains the root word (circular definition)
+     * Comprehensive quality check using the new quality control system
      * @param {string} word - The word being defined
      * @param {string} definition - The definition text
-     * @returns {boolean} True if definition contains root word
+     * @returns {boolean} True if definition passes quality checks
      */
-    containsRootWord(word, definition) {
-        const normalizedWord = word.toLowerCase();
-        const normalizedDef = definition.toLowerCase();
-        
-        // Check for exact word match
-        if (normalizedDef.includes(normalizedWord)) {
+    passesQualityChecks(word, definition) {
+        try {
+            // Use the comprehensive quality checker
+            const qualityCheck = DefinitionQualityChecker.checkAutoReject(word, definition);
+            
+            if (qualityCheck.shouldReject) {
+                console.log(`🚫 Rejected ${word}: ${qualityCheck.issues.join(', ')}`);
+                
+                // Mark word as invalid for database curation if it has serious issues
+                const seriousIssues = ['rejected_personalNames', 'rejected_inappropriate', 'circular_definition'];
+                if (qualityCheck.issues.some(issue => seriousIssues.includes(issue))) {
+                    this.curator.markWordAsInvalid(word);
+                }
+                
+                return false;
+            }
+            
+            // Additional API-specific checks
+            if (definition.length < DEFINITION_QUALITY_CONFIG.length.minimum) {
+                console.log(`🚫 Rejected ${word}: definition too short (${definition.length} chars)`);
+                return false;
+            }
+            
+            if (definition.length > DEFINITION_QUALITY_CONFIG.length.maximum) {
+                console.log(`🚫 Rejected ${word}: definition too long (${definition.length} chars)`);
+                return false;
+            }
+            
             return true;
+            
+        } catch (error) {
+            console.warn(`⚠️ Error checking quality for ${word}: ${error.message}`);
+            return false; // Err on the side of caution
         }
-        
-        // Check for common word variations
-        const wordVariations = [
-            normalizedWord + 's',    // plural
-            normalizedWord + 'ed',   // past tense
-            normalizedWord + 'ing',  // present participle
-            normalizedWord + 'er',   // comparative
-            normalizedWord + 'est'   // superlative
-        ];
-        
-        return wordVariations.some(variation => normalizedDef.includes(variation));
     }
 
     /**
-     * Check if definition contains offensive content
-     * @param {string} word - The word being defined
-     * @param {string} definition - The definition text
-     * @returns {boolean} True if definition contains offensive content
+     * Legacy method maintained for compatibility - now uses comprehensive quality checks
+     * @deprecated Use passesQualityChecks instead
+     */
+    containsRootWord(word, definition) {
+        const qualityCheck = DefinitionQualityChecker.checkAutoReject(word, definition);
+        return qualityCheck.issues.includes('circular_definition');
+    }
+
+    /**
+     * Legacy method maintained for compatibility - now uses comprehensive quality checks
+     * @deprecated Use passesQualityChecks instead
      */
     containsOffensiveContent(word, definition) {
-        const normalizedDef = definition.toLowerCase();
-        
-        // Offensive content markers to reject
-        const offensiveMarkers = [
-            'slur',
-            'offensive',
-            'derogatory',
-            'ethnic slur',
-            'racial slur',
-            'pejorative',
-            'disparaging',
-            'insulting',
-            'vulgar',
-            'profanity'
-        ];
-        
-        // Check for offensive markers
-        const hasOffensiveMarkers = offensiveMarkers.some(marker => 
-            normalizedDef.includes(marker)
+        const qualityCheck = DefinitionQualityChecker.checkAutoReject(word, definition);
+        const hasOffensiveIssues = qualityCheck.issues.some(issue => 
+            issue.includes('inappropriate') || issue.includes('personalNames')
         );
         
-        if (hasOffensiveMarkers) {
-            console.log(`🚫 Rejected ${word}: contains offensive content markers`);
-            return true;
+        if (hasOffensiveIssues) {
+            this.curator.markWordAsInvalid(word);
         }
         
-        return false;
+        return hasOffensiveIssues;
     }
 
     /**
@@ -281,6 +295,8 @@ export class EnhancedDefinitionFetcher {
             this.stats.definitionsFound++;
         } else {
             this.negativeCache.add(upperWord);
+            // Mark word as invalid for database curation
+            this.curator.markWordAsInvalid(word);
         }
         
         return result;
@@ -334,6 +350,7 @@ export class EnhancedDefinitionFetcher {
                     results.definitionsFound.set(word.toUpperCase(), definition);
                 } else {
                     results.wordsToRemove.push(word);
+                    this.curator.markWordAsInvalid(word);
                     this.stats.wordsRemoved++;
                 }
                 
@@ -353,6 +370,7 @@ export class EnhancedDefinitionFetcher {
         
         // Add words that were already known to be undefined
         results.wordsToRemove.push(...filtered.inNegativeCache);
+        filtered.inNegativeCache.forEach(word => this.curator.markWordAsInvalid(word));
         
         return results;
     }
@@ -371,6 +389,15 @@ export class EnhancedDefinitionFetcher {
         }
         
         this.lastRequestTime = Date.now();
+    }
+
+    /**
+     * Curate the word database by removing invalid words
+     * @returns {Promise<Object>} Curation results
+     */
+    async curateWordDatabase() {
+        console.log('\n🧹 Curating word database...');
+        return await this.curator.curateDatabase();
     }
 
     /**
@@ -414,5 +441,159 @@ export class EnhancedDefinitionFetcher {
         console.log(`   📈 Reduction: ${Math.round((wordsToRemove.length / originalWords.length) * 100)}%`);
         
         return cleanedWords;
+    }
+
+    /**
+     * Process fetched definitions through the quality management system
+     * @param {Map} fetchedDefinitions - Map of word -> definition data
+     * @returns {Promise<Object>} Processing results with quality metrics
+     */
+    async processDefinitionsWithQualityControl(fetchedDefinitions) {
+        console.log(`🔍 Processing ${fetchedDefinitions.size} definitions through quality control...`);
+        
+        const results = {
+            total: fetchedDefinitions.size,
+            accepted: 0,
+            rejected: 0,
+            errors: 0,
+            acceptedDefinitions: new Map(),
+            rejectedDefinitions: new Map(),
+            qualityStats: {
+                averageScore: 0,
+                totalScore: 0,
+                scoreDistribution: { low: 0, medium: 0, high: 0 }
+            }
+        };
+
+        // Process each definition through the quality control system
+        for (const [word, defData] of fetchedDefinitions.entries()) {
+            try {
+                const addResult = await this.definitionManager.addDefinition(
+                    word, 
+                    defData.definition, 
+                    {
+                        source: defData.source,
+                        partOfSpeech: defData.partOfSpeech,
+                        fetchedAt: defData.fetchedAt
+                    }
+                );
+
+                if (addResult.success) {
+                    results.accepted++;
+                    results.acceptedDefinitions.set(word, addResult.data);
+                    
+                    // Track quality scores
+                    const score = addResult.validation.score;
+                    results.qualityStats.totalScore += score;
+                    
+                    if (score >= 85) results.qualityStats.scoreDistribution.high++;
+                    else if (score >= 70) results.qualityStats.scoreDistribution.medium++;
+                    else results.qualityStats.scoreDistribution.low++;
+                    
+                    console.log(`✅ High-quality definition added for ${word} (score: ${score})`);
+                } else {
+                    results.rejected++;
+                    results.rejectedDefinitions.set(word, {
+                        definition: defData.definition,
+                        reason: addResult.reason,
+                        validation: addResult.validation
+                    });
+                    
+                    console.log(`❌ Rejected definition for ${word}: ${addResult.reason}`);
+                }
+                
+            } catch (error) {
+                results.errors++;
+                console.error(`❌ Error processing definition for ${word}:`, error);
+            }
+        }
+
+        // Calculate average quality score
+        if (results.accepted > 0) {
+            results.qualityStats.averageScore = Math.round(results.qualityStats.totalScore / results.accepted);
+        }
+
+        console.log(`📊 Quality Control Results:`);
+        console.log(`   Total processed: ${results.total}`);
+        console.log(`   Accepted: ${results.accepted} (${Math.round((results.accepted/results.total)*100)}%)`);
+        console.log(`   Rejected: ${results.rejected} (${Math.round((results.rejected/results.total)*100)}%)`);
+        console.log(`   Average quality score: ${results.qualityStats.averageScore}/100`);
+        console.log(`   High quality (85+): ${results.qualityStats.scoreDistribution.high}`);
+        console.log(`   Medium quality (70-84): ${results.qualityStats.scoreDistribution.medium}`);
+        console.log(`   Low quality (<70): ${results.qualityStats.scoreDistribution.low}`);
+
+        return results;
+    }
+
+    /**
+     * Save processed definitions to file using DefinitionManager
+     * @returns {Promise<boolean>} Success status
+     */
+    async saveProcessedDefinitions() {
+        try {
+            const success = await this.definitionManager.saveDefinitionsToFile();
+            
+            if (success) {
+                console.log(`💾 Successfully saved definitions with quality guarantees`);
+                
+                // Also save quality report
+                const qualityStats = this.definitionManager.getQualityStats();
+                console.log(`📊 Final Quality Report:`);
+                console.log(`   Total definitions: ${qualityStats.cacheSize}`);
+                console.log(`   Average quality score: ${qualityStats.averageQualityScore}/100`);
+                console.log(`   Rejection rate: ${qualityStats.rejectionRate}%`);
+                
+                return true;
+            } else {
+                console.error(`❌ Failed to save definitions`);
+                return false;
+            }
+            
+        } catch (error) {
+            console.error(`❌ Error saving processed definitions:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * Enhanced method that combines fetching with quality control
+     * @param {Array<string>} words - Words to fetch definitions for
+     * @param {Object} options - Processing options
+     * @returns {Promise<Object>} Complete processing results
+     */
+    async fetchAndProcessWithQualityControl(words, options = {}) {
+        console.log(`🚀 Starting enhanced definition fetching with quality control for ${words.length} words`);
+        
+        // Step 1: Fetch definitions using existing logic
+        const fetchResults = await this.processWords(words);
+        
+        // Step 2: Process through quality control system
+        const qualityResults = await this.processDefinitionsWithQualityControl(fetchResults.definitionsFound);
+        
+        // Step 3: Save high-quality definitions
+        if (options.saveToFile !== false) {
+            await this.saveProcessedDefinitions();
+        }
+        
+        // Step 4: Update word database (remove invalid words)
+        if (fetchResults.wordsToRemove.length > 0) {
+            console.log(`🧹 Cleaning word database: removing ${fetchResults.wordsToRemove.length} invalid words`);
+            fetchResults.wordsToRemove.forEach(word => this.curator.markWordAsInvalid(word));
+            await this.curator.curateDatabase();
+        }
+
+        // Combined results
+        return {
+            fetching: fetchResults,
+            quality: qualityResults,
+            summary: {
+                totalWordsProcessed: words.length,
+                definitionsFetched: fetchResults.definitionsFound.size,
+                highQualityDefinitionsAdded: qualityResults.accepted,
+                lowQualityDefinitionsRejected: qualityResults.rejected,
+                invalidWordsRemoved: fetchResults.wordsToRemove.length,
+                overallSuccessRate: Math.round((qualityResults.accepted / words.length) * 100)
+            }
+        };
     }
 }

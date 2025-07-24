@@ -17,7 +17,7 @@ const loadGameData = async () => {
     const data = {};
     
     try {
-        const keystoneContent = await fs.readFile('./src/data/keystone-words.js', 'utf8');
+        const keystoneContent = await fs.readFile('../src/data/keystone-words.js', 'utf8');
         const keystoneMatch = keystoneContent.match(/const KEYSTONE_WORDS = (\{[\s\S]*?\});/);
         if (keystoneMatch) {
             eval(`data.KEYSTONE_WORDS = ${keystoneMatch[1]}`);
@@ -28,7 +28,7 @@ const loadGameData = async () => {
     }
 
     try {
-        const cornerstoneContent = await fs.readFile('./src/data/cornerstone-words.js', 'utf8');
+        const cornerstoneContent = await fs.readFile('../src/data/cornerstone-words.js', 'utf8');
         const commonMatch = cornerstoneContent.match(/const COMMON_WORDS_LIST = (\[[\s\S]*?\]);/);
         if (commonMatch) {
             eval(`data.COMMON_WORDS_LIST = ${commonMatch[1]}`);
@@ -39,7 +39,7 @@ const loadGameData = async () => {
     }
 
     try {
-        const wordsContent = await fs.readFile('./src/data/words-database-compact.js', 'utf8');
+        const wordsContent = await fs.readFile('../src/data/words-database-compact.js', 'utf8');
         let wordsMatch = wordsContent.match(/const WORD_LIST_STRING = "([^"]+)"/);
         if (wordsMatch) {
             data.WORDS_DATABASE = wordsMatch[1].split('|');
@@ -55,7 +55,7 @@ const loadGameData = async () => {
     }
 
     try {
-        const defsContent = await fs.readFile('./src/data/word-definitions.js', 'utf8');
+        const defsContent = await fs.readFile('../src/data/word-definitions.js', 'utf8');
         const defsMatch = defsContent.match(/const COMMON_DEFINITIONS = (\{[\s\S]*?\});/);
         if (defsMatch) {
             eval(`data.COMMON_DEFINITIONS = ${defsMatch[1]}`);
@@ -112,7 +112,7 @@ export const WORD_LIST_STRING = "${wordListString}";
 export const WORDS_DATABASE = WORD_LIST_STRING.split('|');
 `;
 
-    await fs.writeFile('./src/data/words-database-compact.js', updatedContent, 'utf8');
+    await fs.writeFile('../src/data/words-database-compact.js', updatedContent, 'utf8');
     console.log(`✅ Updated word database: ${cleanedWords.length} words`);
 };
 
@@ -135,7 +135,7 @@ export const COMMON_DEFINITIONS = {
 ${definitionsCode}
 };`;
 
-    await fs.writeFile('./src/data/word-definitions.js', updatedContent, 'utf8');
+    await fs.writeFile('../src/data/word-definitions.js', updatedContent, 'utf8');
     console.log(`✅ Updated definitions: ${Object.keys(allDefinitions).length} definitions`);
 };
 

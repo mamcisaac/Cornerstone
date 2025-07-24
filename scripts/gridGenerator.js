@@ -1,5 +1,5 @@
 // Grid Generator - Advanced algorithms for finding Hamiltonian paths in cross-shaped grids
-import { CROSS_POSITIONS, ADJACENCY, HAMILTONIAN_PATHS } from './constants.js';
+import { CROSS_POSITIONS, ADJACENCY, HAMILTONIAN_PATHS } from '../src/js/constants.js';
 
 export class GridGenerator {
     constructor() {

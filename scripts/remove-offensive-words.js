@@ -10,7 +10,7 @@ const offensiveWords = ['BOONG', 'CHEN', 'COON'];
 const cleanWordDatabase = async () => {
     console.log('🧹 Cleaning word database...');
     
-    const content = await fs.readFile('./src/data/words-database-compact.js', 'utf8');
+    const content = await fs.readFile('../src/data/words-database-compact.js', 'utf8');
     const match = content.match(/export const WORD_LIST_STRING = "([^"]+)"/);
     
     if (match) {
@@ -26,7 +26,7 @@ const cleanWordDatabase = async () => {
             `export const WORD_LIST_STRING = "${newWordListString}"`
         );
         
-        await fs.writeFile('./src/data/words-database-compact.js', updatedContent, 'utf8');
+        await fs.writeFile('../src/data/words-database-compact.js', updatedContent, 'utf8');
         
         console.log(`   ✅ Removed ${removedCount} offensive words from database`);
         console.log(`   📊 Words: ${originalCount} → ${cleanedWords.length}`);
@@ -41,7 +41,7 @@ const cleanWordDatabase = async () => {
 const cleanDefinitions = async () => {
     console.log('🧹 Cleaning definitions...');
     
-    const content = await fs.readFile('./src/data/word-definitions.js', 'utf8');
+    const content = await fs.readFile('../src/data/word-definitions.js', 'utf8');
     let updatedContent = content;
     let removedCount = 0;
     
@@ -59,7 +59,7 @@ const cleanDefinitions = async () => {
     updatedContent = updatedContent.replace(/,(\s*,)+/g, ',');
     updatedContent = updatedContent.replace(/,(\s*)\}/g, '$1}');
     
-    await fs.writeFile('./src/data/word-definitions.js', updatedContent, 'utf8');
+    await fs.writeFile('../src/data/word-definitions.js', updatedContent, 'utf8');
     
     console.log(`   ✅ Removed ${removedCount} offensive definitions`);
     

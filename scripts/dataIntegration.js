@@ -1,5 +1,5 @@
 // Data Integration - Utilities to integrate puzzle builder with existing game data structures
-import { SAMPLE_PUZZLES } from './constants.js';
+import { SAMPLE_PUZZLES } from '../src/js/constants.js';
 
 export class DataIntegration {
     constructor() {

@@ -49,6 +49,15 @@ deprecated/
 *-report.txt
 *-report.json
 
+# Analysis output files
+definition-coverage-analysis.json
+placeholder-words-in-puzzles.json
+placeholder-words-prioritized.json
+puzzle-words-analysis.json
+urgent-placeholder-words.json
+words-needing-definitions.json
+output/
+
 # Environment variables
 .env
 .env.local

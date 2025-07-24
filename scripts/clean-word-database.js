@@ -15,7 +15,7 @@ global.console = console;
 // Load current word database
 const loadWordDatabase = async () => {
     try {
-        const wordsContent = await fs.readFile('./src/data/words-database-compact.js', 'utf8');
+        const wordsContent = await fs.readFile('../src/data/words-database-compact.js', 'utf8');
         
         // Try new format first
         let wordsMatch = wordsContent.match(/const WORD_LIST_STRING = "([^"]+)"/);
@@ -40,7 +40,7 @@ const loadWordDatabase = async () => {
 // Load existing definitions
 const loadExistingDefinitions = async () => {
     try {
-        const defsContent = await fs.readFile('./src/data/word-definitions.js', 'utf8');
+        const defsContent = await fs.readFile('../src/data/word-definitions.js', 'utf8');
         const defsMatch = defsContent.match(/const COMMON_DEFINITIONS = (\{[\s\S]*?\});/);
         if (defsMatch) {
             let definitions;
@@ -106,7 +106,7 @@ const cleanWordDatabase = async () => {
     console.log(`   • Existing definitions: ${Object.keys(existingDefinitions).length}`);
     
     // Import Datamuse client
-    const { DatamuseClient } = await import('./src/js/datamuseClient.js');
+    const { DatamuseClient } = await import('./datamuseClient.js');
     const datamuseClient = new DatamuseClient();
     
     // Process words in batches to avoid overwhelming APIs
@@ -186,7 +186,7 @@ export const WORD_LIST_STRING = "${newWordListString}";
 export const WORDS_DATABASE = WORD_LIST_STRING.split('|');
 `;
     
-    await fs.writeFile('./src/data/words-database-compact.js', updatedWordsFile, 'utf8');
+    await fs.writeFile('../src/data/words-database-compact.js', updatedWordsFile, 'utf8');
     console.log('   ✅ Updated words-database-compact.js');
     
     // Update definitions file if we found new ones
@@ -206,7 +206,7 @@ export const COMMON_DEFINITIONS = {
 ${definitionsCode}
 };`;
 
-        await fs.writeFile('./src/data/word-definitions.js', updatedDefinitionsFile, 'utf8');
+        await fs.writeFile('../src/data/word-definitions.js', updatedDefinitionsFile, 'utf8');
         console.log(`   ✅ Updated word-definitions.js with ${Object.keys(newDefinitions).length} new definitions`);
     }
     

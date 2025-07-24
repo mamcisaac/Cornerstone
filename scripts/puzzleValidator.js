@@ -1,5 +1,5 @@
 // Puzzle Validator - Comprehensive validation tools for puzzle quality and solvability
-import { CROSS_POSITIONS, ADJACENCY, HAMILTONIAN_PATHS } from './constants.js';  
+import { CROSS_POSITIONS, ADJACENCY, HAMILTONIAN_PATHS } from '../src/js/constants.js';  
 import { WordDiscoverySystem } from './wordDiscovery.js';
 
 export class PuzzleValidator {

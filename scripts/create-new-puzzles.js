@@ -18,7 +18,7 @@ const loadGameData = async () => {
     
     try {
         // Load keystone words
-        const keystoneContent = await fs.readFile('./src/data/keystone-words.js', 'utf8');
+        const keystoneContent = await fs.readFile('../src/data/keystone-words.js', 'utf8');
         const keystoneMatch = keystoneContent.match(/const KEYSTONE_WORDS = (\{[\s\S]*?\});/);
         if (keystoneMatch) {
             eval(`data.KEYSTONE_WORDS = ${keystoneMatch[1]}`);
@@ -30,7 +30,7 @@ const loadGameData = async () => {
 
     try {
         // Load common words
-        const cornerstoneContent = await fs.readFile('./src/data/cornerstone-words.js', 'utf8');
+        const cornerstoneContent = await fs.readFile('../src/data/cornerstone-words.js', 'utf8');
         const commonMatch = cornerstoneContent.match(/const COMMON_WORDS_LIST = (\[[\s\S]*?\]);/);
         if (commonMatch) {
             eval(`data.COMMON_WORDS_LIST = ${commonMatch[1]}`);
@@ -42,7 +42,7 @@ const loadGameData = async () => {
 
     try {
         // Load words database
-        const wordsContent = await fs.readFile('./src/data/words-database-compact.js', 'utf8');
+        const wordsContent = await fs.readFile('../src/data/words-database-compact.js', 'utf8');
         
         // Try new format first
         let wordsMatch = wordsContent.match(/const WORD_LIST_STRING = "([^"]+)"/);
@@ -62,7 +62,7 @@ const loadGameData = async () => {
 
     try {
         // Load definitions
-        const defsContent = await fs.readFile('./src/data/word-definitions.js', 'utf8');
+        const defsContent = await fs.readFile('../src/data/word-definitions.js', 'utf8');
         const defsMatch = defsContent.match(/const COMMON_DEFINITIONS = (\{[\s\S]*?\});/);
         if (defsMatch) {
             eval(`data.COMMON_DEFINITIONS = ${defsMatch[1]}`);

@@ -1,6 +1,6 @@
 // Word Discovery System - Enhanced word finding with path optimization and comprehensive search
-import { ADJACENCY } from './constants.js';
-import { WordFinder } from './wordFinder.js';
+import { ADJACENCY } from '../src/js/constants.js';
+import { WordFinder } from '../src/js/wordFinder.js';
 
 export class WordDiscoverySystem extends WordFinder {
     constructor(options = {}) {

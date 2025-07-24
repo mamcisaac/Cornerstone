@@ -198,6 +198,25 @@ function setupEventListeners() {
             }
         });
     }
+
+    // Close buttons for popup panels
+    const cornerstoneCloseX = document.getElementById('cornerstone-close-x');
+    if (cornerstoneCloseX) {
+        cornerstoneCloseX.addEventListener('click', () => {
+            if (window.hideMobilePopup) {
+                window.hideMobilePopup('cornerstone-tab');
+            }
+        });
+    }
+
+    const foundCloseX = document.getElementById('found-close-x');
+    if (foundCloseX) {
+        foundCloseX.addEventListener('click', () => {
+            if (window.hideMobilePopup) {
+                window.hideMobilePopup('found-tab');
+            }
+        });
+    }
 }
 
 // Export game instance for testing and debugging

@@ -8,6 +8,7 @@ import { WordFinder } from './wordFinder.js';
 
 export class CornerstonesGame {
     constructor() {
+        console.log('CornerstonesGame v1.1 - Keystone celebration enabled');
         this.currentPuzzle = "CORNERSTONES";
         this.grid = [];
         this.selectedPath = [];
@@ -505,6 +506,9 @@ export class CornerstonesGame {
                 return;
             }
             
+            // Track if this is the keystone word
+            const isKeystoneWord = upperWord === this.currentPuzzle;
+            
             // Check if it's a cornerstone word
             const cornerstoneWord = this.cornerstoneWords.find(w => w.word === upperWord);
             if (cornerstoneWord) {
@@ -513,10 +517,22 @@ export class CornerstonesGame {
                 
                 cornerstoneWord.found = true;
                 this.foundWords.add(upperWord);
-                showMessage(`Cornerstone word found: "${upperWord}"!`, 'cornerstone');
+                
+                // Check if this cornerstone word is also the keystone word
+                if (isKeystoneWord) {
+                    // Award 5 hints for finding the keystone word
+                    for (let i = 0; i < 5; i++) {
+                        this.hintSystem.earnHint(true); // Pass true for bonus animation
+                    }
+                    showMessage(`🎊 You found the KEYSTONE word: "${upperWord}"! +5 hints!`, 'cornerstone keystone-celebration');
+                } else {
+                    showMessage(`Cornerstone word found: "${upperWord}"!`, 'cornerstone');
+                }
+                
                 this.updateFoundWords();
                 this.updateStats();
                 this.updateCornerstoneDisplay();
+                this.updateHintButtons();
                 this.saveProgress();
                 
                 // Check if puzzle is complete
@@ -524,15 +540,24 @@ export class CornerstonesGame {
                 if (allCornerstonesFound) {
                     showMessage('🎉 Puzzle complete! All cornerstone words found!', 'cornerstone');
                 }
-            } else if (this.validWords.includes(upperWord)) {
+            } else if (isKeystoneWord || this.validWords.includes(upperWord)) {
                 // Animate grid cells
                 this.animateWordAcceptance();
                 
-                // Valid word but not cornerstone - earn a hint
                 this.foundWords.add(upperWord);
                 
-                this.hintSystem.earnHint();
-                showMessage(`"${upperWord}" found! +1 hint earned`, 'success');
+                // Check if this is the keystone word
+                if (isKeystoneWord) {
+                    // Award 5 hints for finding the keystone word
+                    for (let i = 0; i < 5; i++) {
+                        this.hintSystem.earnHint(true); // Pass true for bonus animation
+                    }
+                    showMessage(`🎊 You found the KEYSTONE word: "${upperWord}"! +5 hints!`, 'cornerstone keystone-celebration');
+                } else {
+                    // Valid word but not cornerstone - earn a hint
+                    this.hintSystem.earnHint();
+                    showMessage(`"${upperWord}" found! +1 hint earned`, 'success');
+                }
                 this.updateFoundWords();
                 this.updateStats();
                 this.updateHintButtons();
@@ -599,8 +624,8 @@ export class CornerstonesGame {
         const totalPossible = this.allPossibleWords.size;
         
         // Update all stats displays to ensure consistency
-        // UI should show: total found words, total cornerstone words available, total possible words
-        updateStats(totalFound, totalCornerstone, totalPossible, this.hintSystem.availableHints);
+        // UI should show: cornerstone found, total cornerstone, total found words, total possible words, hints
+        updateStats(totalFound, cornerstoneFound, totalCornerstone, totalPossible, this.hintSystem.availableHints);
         updateCornerstoneProgress(cornerstoneFound, totalCornerstone);
         
         // Log for debugging if there's a mismatch

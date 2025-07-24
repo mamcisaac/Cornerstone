@@ -14,7 +14,7 @@
     <script src="data/words-database-compact.js"></script>
     <script src="data/cornerstone-words.js"></script>
     <script src="data/word-definitions.js"></script>
-    <script src="data/seed-words.js"></script>
+    <script src="data/keystone-words.js"></script>
 </head>
 <body>
     <!-- Mobile tabs for smaller screens -->
@@ -35,18 +35,22 @@
                     <button class="help-button" id="help-button">?</button>
                 </div>
 
+                <div class="game-grid" id="grid"></div>
+
+                <div class="current-word">
+                    <div class="word-display" id="current-word"></div>
+                </div>
+
+                <div class="message" id="message"></div>
+
                 <!-- Enhanced Stats Display with Chips -->
                 <div class="stats-container">
-                    <div class="stat-chip">
-                        <div class="stat-value" id="words-found-count">0</div>
-                        <div class="stat-label">Found</div>
-                    </div>
                     <div class="stat-chip cornerstone">
-                        <div class="stat-value" id="cornerstone-count">0</div>
-                        <div class="stat-label">Cornerstone</div>
+                        <div class="stat-value" id="cornerstone-count">0/0</div>
+                        <div class="stat-label">Cornerstones</div>
                     </div>
                     <div class="stat-chip">
-                        <div class="stat-value" id="total-words-count">0</div>
+                        <div class="stat-value" id="total-words-count">0/0</div>
                         <div class="stat-label">Total</div>
                     </div>
                     <div class="stat-chip hints">
@@ -55,21 +59,13 @@
                     </div>
                 </div>
 
-                <div class="current-word">
-                    <div class="word-display" id="current-word"></div>
-                </div>
-
-                <div class="message" id="message"></div>
-
-                <div class="game-grid" id="grid"></div>
-
                 <div class="found-words">
                     <h3>Found Words</h3>
                     <div class="word-list" id="found-words-list"></div>
                 </div>
 
                 <div class="controls">
-                    <button class="control-button" id="switch-puzzle-btn">Switch Puzzle</button>
+                    <button class="control-button" id="switch-puzzle-btn">New Game</button>
                 </div>
             </div>
         </div>

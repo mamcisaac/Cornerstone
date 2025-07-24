@@ -1,7 +1,7 @@
-// Seed words for puzzle generation - all must be exactly 12 letters
+// Keystone words for puzzle generation - all must be exactly 12 letters
 // These words will be treated as cornerstone words in their respective puzzles
 
-const SEED_WORDS = {
+const KEYSTONE_WORDS = {
     "CORNERSTONES": {
         word: "CORNERSTONES",
         definition: "The fundamental or most important parts; foundation stones of a building placed at corners"
@@ -783,10 +783,10 @@ const SEED_WORDS = {
 
 // Export for use in the game
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SEED_WORDS;
+    module.exports = KEYSTONE_WORDS;
 }
 
 // Also make it available globally for browser use
 if (typeof window !== 'undefined') {
-    window.SEED_WORDS = SEED_WORDS;
+    window.KEYSTONE_WORDS = KEYSTONE_WORDS;
 }

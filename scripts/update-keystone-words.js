@@ -13,11 +13,11 @@ const newPuzzleWords = {
     }
 };
 
-// Read the current seed-words.js file
-const seedWordsPath = path.join(__dirname, '../src/data/seed-words.js');
-let content = fs.readFileSync(seedWordsPath, 'utf8');
+// Read the current keystone-words.js file
+const keystoneWordsPath = path.join(__dirname, '../src/data/keystone-words.js');
+let content = fs.readFileSync(keystoneWordsPath, 'utf8');
 
-// Find the end of the SEED_WORDS object (before the closing brace)
+// Find the end of the KEYSTONE_WORDS object (before the closing brace)
 const lastEntryRegex = /    "([A-Z]+)": \{[^}]+\}(\s*)\};/;
 const match = content.match(lastEntryRegex);
 
@@ -37,11 +37,11 @@ if (match) {
         content = content.replace(lastEntryRegex, replacement);
         
         // Write the updated content back
-        fs.writeFileSync(seedWordsPath, content);
-        console.log('✅ Updated seed-words.js with new puzzle words');
+        fs.writeFileSync(keystoneWordsPath, content);
+        console.log('✅ Updated keystone-words.js with new puzzle words');
         console.log('Added:', Object.keys(newPuzzleWords).filter(key => !content.includes(`"${key}"`)));
     } else {
-        console.log('ℹ️ All puzzle words already exist in seed-words.js');
+        console.log('ℹ️ All puzzle words already exist in keystone-words.js');
     }
 } else {
     console.log('❌ Could not find the SEED_WORDS object structure');

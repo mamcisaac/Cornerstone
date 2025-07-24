@@ -33,7 +33,7 @@ cornerstone/
 │   └── data/              # Game data files
 │       ├── words-database.js
 │       ├── common-definitions.js
-│       └── seed-words.js
+│       └── keystone-words.js
 ├── scripts/               # Utility scripts
 │   └── definition-fetcher.js  # Consolidated definition fetcher
 ├── tests/                 # Test files

@@ -5,7 +5,7 @@
 ### 1. Broken Puzzles
 - **ARCHITECTURE** (Path 1) - Cannot be found via adjacency traversal
 - **INTELLIGENCE** (Path 5) - Cannot be found via adjacency traversal
-- No validation exists to ensure seed words can actually be found in the grid
+- No validation exists to ensure keystone words can actually be found in the grid
 
 ### 2. Code Organization Issues
 
@@ -21,10 +21,10 @@
 
 ### 3. Data Structure Issues
 
-#### Seed Words
-- `seed-words.js` exports differently than expected (`module.exports = SEED_WORDS` vs `module.exports = { SEED_WORDS }`)
+#### Keystone Words
+- `keystone-words.js` exports differently than expected (`module.exports = KEYSTONE_WORDS` vs `module.exports = { KEYSTONE_WORDS }`)
 - Inconsistent data structures between files
-- No validation of seed word validity before use
+- No validation of keystone word validity before use
 
 #### Grid System
 - Cross-shaped grid uses positions [1,2,4,5,6,7,8,9,10,11,13,14] - positions 0,3,12,15 are empty
@@ -34,7 +34,7 @@
 ### 4. Missing Features/Validations
 
 #### Puzzle Validation
-- No check if a seed word can actually be found via adjacency
+- No check if a keystone word can actually be found via adjacency
 - No automated testing of puzzle validity
 - No warning when creating invalid puzzles
 
@@ -77,7 +77,7 @@ cornerstone/
 │   └── ui.js (UI updates)
 ├── data/
 │   ├── puzzles.json
-│   ├── seed-words.json
+│   ├── keystone-words.json
 │   └── definitions.json
 └── tests/
     ├── puzzle-validator.js
@@ -107,7 +107,7 @@ const GRID_LAYOUT = {
 // Better puzzle structure
 const PUZZLES = {
   "AVAILABILITY": {
-    seedWord: "AVAILABILITY",
+    keystoneWord: "AVAILABILITY",
     pathIndex: 1,
     difficulty: "medium",
     theme: "concepts",
@@ -121,7 +121,7 @@ const PUZZLES = {
 ### 4. Add Validation System
 ```javascript
 class PuzzleValidator {
-  static validatePuzzle(seedWord, pathIndex) {
+  static validatePuzzle(keystoneWord, pathIndex) {
     // 1. Check if word is 12 letters
     // 2. Place on grid using path
     // 3. Verify word can be found via adjacency

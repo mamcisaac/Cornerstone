@@ -8,8 +8,19 @@ export class HintSystem {
     }
 
     // Add a hint when finding a non-cornerstone word
-    earnHint() {
+    earnHint(isBonus = false) {
         this.availableHints++;
+        
+        // Add animation class for bonus hints
+        if (isBonus) {
+            const hintElement = document.getElementById('hints-remaining');
+            if (hintElement) {
+                hintElement.classList.add('increment-bonus');
+                setTimeout(() => {
+                    hintElement.classList.remove('increment-bonus');
+                }, 1000);
+            }
+        }
     }
 
     // Check if player has enough hints

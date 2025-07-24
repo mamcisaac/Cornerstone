@@ -7,7 +7,7 @@
 - **INTELLIGENCE** (Path 5) - Could not be found via adjacency traversal
 
 ### 2. Root Cause
-The seed words were placed on the grid using Hamiltonian paths, but the resulting letter arrangement made it impossible to spell the seed word by following the adjacency rules of the cross-shaped grid.
+The keystone words were placed on the grid using Hamiltonian paths, but the resulting letter arrangement made it impossible to spell the keystone word by following the adjacency rules of the cross-shaped grid.
 
 ## Solutions Implemented
 
@@ -29,7 +29,7 @@ The seed words were placed on the grid using Hamiltonian paths, but the resultin
 ### 3. Created Validation Tools
 - `test-architecture-path.js` - Diagnoses why specific puzzles are broken
 - `analyze-all-puzzles.js` - Tests all existing puzzles for validity
-- `find-working-puzzles.js` - Finds valid seed words for each path
+- `find-working-puzzles.js` - Finds valid keystone words for each path
 - `test-new-puzzles.js` - Verifies all puzzles work correctly
 
 ## New Puzzle: AVAILABILITY
@@ -81,7 +81,7 @@ Comprehensive documentation of:
 
 ## Key Takeaways
 
-1. **Puzzle Validation is Critical** - Always verify that seed words can be found via adjacency before deploying
+1. **Puzzle Validation is Critical** - Always verify that keystone words can be found via adjacency before deploying
 2. **Testing Infrastructure Needed** - Automated validation should be part of the puzzle creation process
 3. **Code Organization** - The 3000+ line monolithic index.html needs to be refactored into modules
 4. **Data Consistency** - Different files export data in different formats, causing integration issues

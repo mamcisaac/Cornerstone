@@ -65,10 +65,9 @@ export function hideDefinition() {
 }
 
 // Stats updates
-export function updateStats(foundCount, cornerstoneCount, totalWords, hintsRemaining) {
-    document.getElementById('words-found-count').textContent = foundCount;
-    document.getElementById('cornerstone-count').textContent = cornerstoneCount;
-    document.getElementById('total-words-count').textContent = totalWords;
+export function updateStats(foundCount, cornerstoneFound, cornerstoneTotal, totalWords, hintsRemaining) {
+    document.getElementById('cornerstone-count').textContent = `${cornerstoneFound}/${cornerstoneTotal}`;
+    document.getElementById('total-words-count').textContent = `${foundCount}/${totalWords}`;
     document.getElementById('hints-remaining').textContent = hintsRemaining;
     document.getElementById('hint-count-display').textContent = `${hintsRemaining} remaining`;
 }

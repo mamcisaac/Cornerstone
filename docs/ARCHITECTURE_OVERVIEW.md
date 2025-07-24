@@ -72,7 +72,7 @@ cornerstone/
 | Sprint | Key Issues                                                                        |
 | ------ | --------------------------------------------------------------------------------- |
 | **0**  | Init monorepo, docker‑compose, CI, lint hooks.                                    |
-| **1**  | Path cache builder · Seed word embedding via Hamiltonian path · Solver with trie. |
+| **1**  | Path cache builder · Keystone word embedding via Hamiltonian path · Solver with trie. |
 | **2**  | REST endpoints: `/puzzle/today`, `/submit-word`, `/spend-credit`, JWT auth.       |
 | **3**  | React grid renderer + drag logic · Keyboard entry · Grey‑out effect · Hint UI.    |
 | **4**  | Player stats & streaks · Leaderboard via WebSocket.                               |

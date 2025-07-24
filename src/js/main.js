@@ -64,12 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupEventListeners() {
     // Use delegation for hint buttons that might be in hidden tabs
     document.addEventListener('click', (e) => {
-        if (e.target.id === 'reveal-letter-btn') {
+        const revealLetterBtn = e.target.closest('#reveal-letter-btn');
+        const showDefinitionBtn = e.target.closest('#show-definition-btn');
+        
+        if (revealLetterBtn) {
             e.preventDefault();
             if (window.game && typeof window.game.revealLetter === 'function') {
                 window.game.revealLetter();  
             }
-        } else if (e.target.id === 'show-definition-btn') {
+        } else if (showDefinitionBtn) {
             e.preventDefault();
             if (window.game && typeof window.game.startDefinitionRevealMode === 'function') {
                 window.game.startDefinitionRevealMode();
@@ -114,6 +117,14 @@ function setupEventListeners() {
     const overlay = document.getElementById('overlay');
     if (overlay) {
         overlay.addEventListener('click', () => {
+            // Check if instructions popup is showing
+            const instructionsPopup = document.getElementById('instructions-popup');
+            if (instructionsPopup && instructionsPopup.classList.contains('show')) {
+                if (window.hideInstructions) {
+                    window.hideInstructions();
+                }
+            }
+            // Also check for definition popup
             if (window.hideDefinition) {
                 window.hideDefinition();
             }

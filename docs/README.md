@@ -1,6 +1,6 @@
 # Cornerstones - Daily Word Puzzle Game
 
-A challenging word puzzle game where you find 4+ letter words in a cross-shaped grid. Each puzzle is generated from a 12-letter seed word placed along a Hamiltonian path.
+A challenging word puzzle game where you find 4+ letter words in a cross-shaped grid. Each puzzle is generated from a 12-letter keystone word placed along a Hamiltonian path.
 
 ## 🎮 Play Now
 
@@ -85,7 +85,7 @@ The game uses depth-first search to find all possible words:
 
 ### Customization
 The game is built as a single HTML file with embedded CSS and JavaScript:
-- Add new seed words to `SAMPLE_PUZZLES`
+- Add new keystone words to `SAMPLE_PUZZLES`
 - Expand the word dictionary in `WORD_DEFINITIONS`
 - Modify the grid layout or styling
 - Add new Hamiltonian paths for variety
@@ -111,7 +111,7 @@ The game is fully responsive and works great on:
 
 ## 📝 Game Mechanics Deep Dive
 
-### Seed Word Placement
+### Keystone Word Placement
 1. Take a 12-letter word (e.g., "CORNERSTONES")
 2. Choose a Hamiltonian path through the 12-cell cross
 3. Place each letter along the path in sequence

@@ -28,6 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Setup event listeners to replace onclick handlers
         setupEventListeners();
         
+        // Re-setup mobile handlers on resize
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                setupMobileHandlers();
+            }, 250);
+        });
+        
     } catch (error) {
         logger.error('Failed to initialize Cornerstones game:', error);
         
@@ -60,6 +69,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Setup mobile click handlers for stat chips
+function setupMobileHandlers() {
+    // Remove existing mobile handlers first
+    document.querySelectorAll('.stat-chip').forEach(chip => {
+        chip.replaceWith(chip.cloneNode(true));
+    });
+    
+    // Add mobile handlers if needed
+    if (window.isMobile && window.isMobile()) {
+        // Cornerstone chip and hints chip both open cornerstone panel
+        const cornerstoneChip = document.querySelector('.stat-chip.cornerstone');
+        const hintsChip = document.querySelector('.stat-chip.hints');
+        const totalChip = document.querySelector('.stat-chip:not(.cornerstone):not(.hints)');
+        
+        if (cornerstoneChip) {
+            cornerstoneChip.addEventListener('click', () => {
+                if (window.showMobilePopup) {
+                    window.showMobilePopup('cornerstone-tab');
+                }
+            });
+        }
+        
+        if (hintsChip) {
+            hintsChip.addEventListener('click', () => {
+                if (window.showMobilePopup) {
+                    window.showMobilePopup('cornerstone-tab');
+                }
+            });
+        }
+        
+        if (totalChip) {
+            totalChip.addEventListener('click', () => {
+                if (window.showMobilePopup) {
+                    window.showMobilePopup('found-tab');
+                }
+            });
+        }
+    }
+}
+
 // Setup event listeners to replace onclick handlers
 function setupEventListeners() {
     // Use delegation for hint buttons that might be in hidden tabs
@@ -80,16 +129,8 @@ function setupEventListeners() {
         }
     });
     
-    // Continue with other event listeners...
-    // Tab switching
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const tabName = e.target.getAttribute('data-tab');
-            if (window.switchTab) {
-                window.switchTab(tabName, e.target);
-            }
-        });
-    });
+    // Setup mobile handlers
+    setupMobileHandlers();
 
     // Help button
     const helpButton = document.getElementById('help-button');

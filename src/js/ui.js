@@ -151,8 +151,43 @@ export function updateCornerstoneProgress(foundCount, totalCount) {
     document.getElementById('progress-fill').style.width = `${progressPercentage}%`;
 }
 
+// Mobile popup functions
+export function showMobilePopup(panelId) {
+    const panel = document.getElementById(panelId);
+    const backdrop = document.getElementById('mobile-backdrop');
+    
+    if (panel && backdrop) {
+        panel.classList.add('mobile-popup');
+        backdrop.classList.add('show');
+        
+        // Add close handler to backdrop
+        backdrop.onclick = () => hideMobilePopup(panelId);
+    }
+}
+
+export function hideMobilePopup(panelId) {
+    const panel = document.getElementById(panelId);
+    const backdrop = document.getElementById('mobile-backdrop');
+    
+    if (panel) {
+        panel.classList.remove('mobile-popup');
+    }
+    if (backdrop) {
+        backdrop.classList.remove('show');
+        backdrop.onclick = null;
+    }
+}
+
+// Check if device is mobile
+export function isMobile() {
+    return window.matchMedia('(max-width: 960px)').matches;
+}
+
 // Make functions available globally for onclick handlers
 window.switchTab = switchTab;
 window.showInstructions = showInstructions;
 window.hideInstructions = hideInstructions;
 window.hideDefinition = hideDefinition;
+window.showMobilePopup = showMobilePopup;
+window.hideMobilePopup = hideMobilePopup;
+window.isMobile = isMobile;

@@ -6,8 +6,11 @@ import { logger } from './logger.js';
 // Initialize the game when page loads
 let game;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     try {
+        // Wait for word database to load
+        await window.WORD_DATABASE_READY;
+        
         game = new CornerstonesGame();
         window.game = game; // Make game accessible globally for onclick handlers
         
@@ -115,6 +118,8 @@ function setupEventListeners() {
     document.addEventListener('click', (e) => {
         const revealLetterBtn = e.target.closest('#reveal-letter-btn');
         const showDefinitionBtn = e.target.closest('#show-definition-btn');
+        const cornerstoneCloseBtn = e.target.closest('#cornerstone-close-x');
+        const foundCloseBtn = e.target.closest('#found-close-x');
         
         if (revealLetterBtn) {
             e.preventDefault();
@@ -125,6 +130,16 @@ function setupEventListeners() {
             e.preventDefault();
             if (window.game && typeof window.game.startDefinitionRevealMode === 'function') {
                 window.game.startDefinitionRevealMode();
+            }
+        } else if (cornerstoneCloseBtn) {
+            e.preventDefault();
+            if (window.hideMobilePopup) {
+                window.hideMobilePopup('cornerstone-tab');
+            }
+        } else if (foundCloseBtn) {
+            e.preventDefault();
+            if (window.hideMobilePopup) {
+                window.hideMobilePopup('found-tab');
             }
         }
     });
@@ -195,25 +210,6 @@ function setupEventListeners() {
         closeInstructionsBtn.addEventListener('click', () => {
             if (window.hideInstructions) {
                 window.hideInstructions();
-            }
-        });
-    }
-
-    // Close buttons for popup panels
-    const cornerstoneCloseX = document.getElementById('cornerstone-close-x');
-    if (cornerstoneCloseX) {
-        cornerstoneCloseX.addEventListener('click', () => {
-            if (window.hideMobilePopup) {
-                window.hideMobilePopup('cornerstone-tab');
-            }
-        });
-    }
-
-    const foundCloseX = document.getElementById('found-close-x');
-    if (foundCloseX) {
-        foundCloseX.addEventListener('click', () => {
-            if (window.hideMobilePopup) {
-                window.hideMobilePopup('found-tab');
             }
         });
     }

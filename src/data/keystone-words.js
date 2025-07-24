@@ -789,4 +789,5 @@ if (typeof module !== 'undefined' && module.exports) {
 // Also make it available globally for browser use
 if (typeof window !== 'undefined') {
     window.KEYSTONE_WORDS = KEYSTONE_WORDS;
+    window.SEED_WORDS = KEYSTONE_WORDS; // Alias for compatibility
 }

@@ -2091,6 +2091,17 @@ const COMMON_DEFINITIONS = {
 // Set up global access for browser compatibility
 if (typeof window !== 'undefined') {
     window.COMMON_DEFINITIONS = COMMON_DEFINITIONS;
+    
+    // Create helper function for getting definitions
+    window.getDefinitionSync = function(word) {
+        const upperWord = word.toUpperCase();
+        return window.COMMON_DEFINITIONS[upperWord] || null;
+    };
+    
+    // Async version for compatibility
+    window.getDefinition = async function(word) {
+        return window.getDefinitionSync(word);
+    };
 } else if (typeof module !== 'undefined' && module.exports) {
     // Node.js compatibility
     module.exports = { COMMON_DEFINITIONS };

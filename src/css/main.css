@@ -42,6 +42,7 @@ body {
     box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     max-height: 90vh;
     overflow-y: auto;
+    position: relative; /* For X button positioning */
 }
 
 .cornerstone-panel {
@@ -857,7 +858,7 @@ body {
     background: #5a67d8;
 }
 
-/* Popup close button for cornerstone and found panels */
+/* Popup close button for cornerstone and found panels - matches instructions modal */
 .popup-close-x {
     position: absolute;
     top: 10px;
@@ -868,7 +869,7 @@ body {
     color: white;
     border: none;
     border-radius: 50%;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     cursor: pointer;
     display: none; /* Hidden by default on desktop */
@@ -876,6 +877,8 @@ body {
     justify-content: center;
     transition: background 0.2s ease;
     z-index: 10;
+    line-height: 1;
+    padding: 0;
 }
 
 .popup-close-x:hover {
